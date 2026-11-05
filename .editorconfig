@@ -1,12 +1,9 @@
-# Basic formatting rules that editors apply as you type, whatever editor you use.
-# Keeping these the same stops diffs from filling up with whitespace-only changes.
+# Editor formatting defaults for the repo.
 
-# Stop looking in parent folders, so outside settings can't affect this repo.
 root = true
 
 [*]
 charset = utf-8
-# LF on every OS. A mix of LF and CRLF makes git show whole files as changed.
 end_of_line = lf
 indent_style = space
 indent_size = 2
@@ -14,5 +11,5 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.md]
-# Two trailing spaces mean a hard line break in Markdown, so they have to stay.
+# Trailing spaces are significant in Markdown: two mark a hard line break.
 trim_trailing_whitespace = false

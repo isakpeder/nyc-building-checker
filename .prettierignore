@@ -1,4 +1,3 @@
-# Files Prettier should leave alone. It already skips everything in .gitignore.
+# Files excluded from formatting, in addition to everything in .gitignore.
 
-# pnpm writes this file, and reformatting it would only create noisy diffs.
 pnpm-lock.yaml

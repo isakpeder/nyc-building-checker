@@ -1,30 +1,22 @@
-# Files git should never track. This file is committed, so the rules apply to
-# everyone who clones the repo. Later commits add entries as new tools show up.
-
-# Dependencies. pnpm rebuilds this folder from the lockfile, so committing it
-# would only add thousands of files that are specific to one machine.
+# Dependencies
 node_modules/
 
-# Build output. It can always be rebuilt from the source, and a committed copy
-# would drift out of date.
+# Build output
 dist/
 
-# Test coverage reports, rewritten on every coverage run.
+# Test coverage
 coverage/
 
-# Local environment files can hold secrets, and git history is close to
-# impossible to fully scrub once a secret lands in it. The ! rule keeps the
-# example file, which documents the variable names and has no real values.
+# Environment files
 .env
 .env.*
 !.env.example
 
-# Chrome's private signing key for packed extensions. Whoever holds this key can
-# publish updates under the extension's ID.
+# Extension signing keys
 *.pem
 
-# Log files from package managers and tools.
+# Logs
 *.log
 
-# Folder metadata that macOS writes on its own.
+# macOS
 .DS_Store

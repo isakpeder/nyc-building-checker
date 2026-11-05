@@ -1,42 +1,28 @@
-// TypeScript compiler settings for the whole project. The typecheck script reads
-// this file. tsc only checks types here: Vite will produce the JavaScript that
-// actually ships, starting with the build commit.
+// TypeScript configuration, used for type checking only. Vite produces the build
+// output.
 {
   "compilerOptions": {
-    // Strict mode: turns on null checks, bans implicit any, and more.
+    // Type safety
     "strict": true,
-    // Makes array[i] and record[key] include undefined, because a lookup can
-    // miss. Plain strict mode assumes it always hits. Not part of strict.
     "noUncheckedIndexedAccess": true,
-    // Flags a switch case that falls into the next one by accident.
     "noFallthroughCasesInSwitch": true,
-    // Requires the override keyword, so renaming a parent method can't silently
-    // leave a child method behind.
     "noImplicitOverride": true,
 
-    // Which JavaScript syntax the code is checked against. Chrome is the only
-    // target and it updates itself, so a recent version is safe.
+    // Language and runtime
     "target": "ES2023",
-    // Which built-in APIs exist. Browser APIs get added when browser code does.
     "lib": ["ES2023"],
-    // Leave import and export statements for the bundler to handle.
-    "module": "preserve",
-    // Resolve imports the way a bundler like Vite does.
-    "moduleResolution": "bundler",
-    // Only load the global types I list here. This is already the default in
-    // TypeScript 6, but stating it keeps the empty list on purpose.
     "types": [],
 
-    // Vite compiles one file at a time, without type information. These two
-    // reject code that can't be compiled that way, such as a type import
-    // written like a value import.
+    // Module handling, delegated to the bundler
+    "module": "preserve",
+    "moduleResolution": "bundler",
+
+    // Required for per-file compilation by Vite
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
 
-    // Check only. Never write .js files next to the source.
+    // Output
     "noEmit": true,
-    // Skip checking the .d.ts files inside dependencies. Faster, and errors in
-    // someone else's type declarations aren't mine to fix.
     "skipLibCheck": true
   },
   "include": ["src"]
