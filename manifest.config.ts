@@ -1,0 +1,22 @@
+// Chrome extension manifest, read by the CRXJS plugin in vite.config.ts and
+// written to dist/manifest.json at build time.
+
+import { defineManifest } from '@crxjs/vite-plugin';
+
+import pkg from './package.json' with { type: 'json' };
+import {
+  EXTENSION_NAME,
+  EXTENSION_SHORT_NAME,
+} from './src/shared/constants.ts';
+
+export default defineManifest({
+  manifest_version: 3,
+  name: EXTENSION_NAME,
+  short_name: EXTENSION_SHORT_NAME,
+  description: pkg.description,
+  version: pkg.version,
+  background: {
+    service_worker: 'src/background/index.ts',
+    type: 'module',
+  },
+});

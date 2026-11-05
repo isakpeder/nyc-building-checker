@@ -10,12 +10,13 @@
 
     // Language and runtime
     "target": "ES2023",
-    "lib": ["ES2023"],
-    "types": [],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["chrome"],
 
     // Module handling, delegated to the bundler
     "module": "preserve",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
 
     // Required for per-file compilation by Vite
     "isolatedModules": true,
@@ -25,5 +26,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src"]
+  "include": ["src", "manifest.config.ts", "vite.config.ts"]
 }
