@@ -19,4 +19,14 @@ export default defineManifest({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
+  content_scripts: [
+    {
+      matches: ['https://streeteasy.com/*'],
+      js: ['src/content/index.ts'],
+    },
+  ],
+  action: {
+    default_title: EXTENSION_SHORT_NAME,
+    default_popup: 'src/popup/index.html',
+  },
 });
