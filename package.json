@@ -1,0 +1,19 @@
+{
+  "name": "stoop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension that shows a building's NYC public record on its StreetEasy listing.",
+  "license": "MIT",
+  "author": "Isak Pederson",
+  "type": "module",
+  "engines": {
+    "node": "^26.0.0"
+  },
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3"
+  }
+}
