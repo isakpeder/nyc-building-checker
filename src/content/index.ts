@@ -6,5 +6,8 @@
  */
 
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
+import { classifyPage } from './page-type';
 
-console.log(`${EXTENSION_SHORT_NAME}: content script loaded`);
+const page = classifyPage(window.location.href);
+
+console.log(`${EXTENSION_SHORT_NAME}: page type is ${page.kind}`);
