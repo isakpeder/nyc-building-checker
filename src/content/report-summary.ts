@@ -30,8 +30,12 @@ export function summarizeResponse(
     return ERROR_TEXT[response.error];
   }
 
-  const { sections } = response.value;
-  const parts: string[] = [];
+  const { sections, score } = response.value;
+  const parts: string[] = [
+    score.kind === 'graded'
+      ? `Grade ${score.grade} (${String(score.score)}/100)`
+      : `Not graded (${score.reason})`,
+  ];
 
   if (sections.violations.status === 'ok') {
     const { A, B, C } = sections.violations.data.byClass;
