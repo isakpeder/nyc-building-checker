@@ -77,9 +77,7 @@ describe('buildReport', () => {
       status: 'ok',
       data: VIOLATIONS,
     });
-    expect(result.ok && result.value.generatedAt).toBe(
-      '2026-11-11T06:00:00.000Z',
-    );
+    expect(result.ok && result.value.builtAt).toBe('2026-11-11T06:00:00.000Z');
     expect(d.violations).toHaveBeenCalledWith('4001230001');
     expect(d.construction).toHaveBeenCalledWith('4123456');
   });

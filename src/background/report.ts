@@ -119,6 +119,6 @@ export async function buildReport(
     building: { bbl, bin },
     sections,
     score: scoreReport(sections, now),
-    generatedAt: now.toISOString(),
+    builtAt: now.toISOString(),
   });
 }

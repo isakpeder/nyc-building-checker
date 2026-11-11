@@ -56,7 +56,7 @@ function report(for_: ListingAddress, complete = true): BuildingReport {
       lot: okSection,
     },
     score: { kind: 'ungraded', reason: 'incomplete' },
-    generatedAt: '2026-11-11T00:00:00.000Z',
+    builtAt: '2026-11-11T00:00:00.000Z',
   };
 }
 

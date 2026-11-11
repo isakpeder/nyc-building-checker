@@ -49,7 +49,7 @@ export interface BuildingReport {
   readonly sections: ReportSections;
   readonly score: Score;
   /** When the report was built, as an ISO timestamp. */
-  readonly generatedAt: string;
+  readonly builtAt: string;
 }
 
 /** Why a report could not be produced. */
