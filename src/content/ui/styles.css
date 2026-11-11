@@ -109,7 +109,7 @@ a:focus-visible {
 }
 
 .muted {
-  color: rgb(0 0 0 / 50%);
+  color: rgb(0 0 0 / 60%);
   font-weight: 400;
 }
 
@@ -122,7 +122,7 @@ a:focus-visible {
 .footer {
   padding: 8px 16px;
   border-top: 1px solid rgb(0 0 0 / 10%);
-  color: rgb(0 0 0 / 50%);
+  color: rgb(0 0 0 / 60%);
   font-size: 12px;
 }
 
@@ -150,4 +150,48 @@ a:focus-visible {
   50% {
     opacity: 0.5;
   }
+}
+
+.details {
+  margin-top: 8px;
+  border-top: 1px solid rgb(0 0 0 / 8%);
+  padding-top: 8px;
+}
+
+.toggle {
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: #0041d9;
+  font: inherit;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.detail-list {
+  margin-top: 8px;
+}
+
+.detail-title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-count {
+  color: rgb(0 0 0 / 60%);
+  font-weight: 400;
+}
+
+.detail-list ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.detail-list li {
+  margin: 2px 0;
 }

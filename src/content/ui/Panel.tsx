@@ -11,6 +11,7 @@ import type { ListingAddress } from '../../shared/address/listing-address';
 import { EXTENSION_SHORT_NAME } from '../../shared/constants';
 import type { BuildingReport, ReportError } from '../../shared/messages';
 import type { Result } from '../../shared/result';
+import { Details } from './Details';
 import { buildRows, type RowModel } from './rows';
 
 /** What the panel shows. */
@@ -112,11 +113,14 @@ export function Panel({ view }: { view: PanelView }): ReactElement {
             ))}
           </dl>
         ) : view.response.ok ? (
-          <dl className="rows">
-            {buildRows(view.response.value).map((row) => (
-              <Row key={row.key} row={row} />
-            ))}
-          </dl>
+          <>
+            <dl className="rows">
+              {buildRows(view.response.value).map((row) => (
+                <Row key={row.key} row={row} />
+              ))}
+            </dl>
+            <Details report={view.response.value} />
+          </>
         ) : (
           <p className="message">{ERROR_MESSAGES[view.response.error]}</p>
         )}
