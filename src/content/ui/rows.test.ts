@@ -188,6 +188,21 @@ describe('buildRows', () => {
     });
   });
 
+  it('uses the singular for one incident', () => {
+    const base = report().sections.complaints;
+    if (base.status !== 'ok') throw new Error('fixture');
+    const rows = buildRows(
+      report({
+        complaints: {
+          status: 'ok',
+          data: { ...base.data, incidents: [{} as never] },
+        },
+      }),
+    );
+
+    expect(row(rows, 'complaints').value).toBe('1 incident');
+  });
+
   it('shows stop-work orders in force and lifted ones', () => {
     const rows = buildRows(
       report({

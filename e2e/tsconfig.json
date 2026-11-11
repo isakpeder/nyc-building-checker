@@ -1,0 +1,9 @@
+// TypeScript settings for the end-to-end tests, which run in Node rather than
+// the browser.
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["."]
+}

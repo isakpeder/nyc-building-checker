@@ -2,7 +2,8 @@
  * Renders the React panel into a closed shadow root on the panel's host element.
  *
  * The shadow root keeps page styles out and panel styles in. It's closed so page
- * scripts can't read the panel's contents through the host element.
+ * scripts can't read the panel's contents through the host element, except in
+ * end-to-end test builds.
  */
 
 import { createRoot } from 'react-dom/client';
@@ -23,7 +24,11 @@ export interface PanelRoot {
  * @returns Functions to render and remove the panel.
  */
 export function attachPanel(host: HTMLElement): PanelRoot {
-  const shadow = host.attachShadow({ mode: 'closed' });
+  // End-to-end test builds use an open root so the browser tests can reach the
+  // panel. Every other build keeps it closed.
+  const shadow = host.attachShadow({
+    mode: import.meta.env.MODE === 'e2e' ? 'open' : 'closed',
+  });
 
   const style = document.createElement('style');
   style.textContent = styles;
