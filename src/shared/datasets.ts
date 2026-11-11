@@ -14,6 +14,4 @@ export const DATASETS = {
   dobComplaints: 'eabe-havv',
   /** Bedbug Reporting. Keyed by BBL. */
   bedbugs: 'wz6d-d3jb',
-  /** Primary Land Use Tax Lot Output (PLUTO). Keyed by BBL. */
-  pluto: '64uk-42ks',
 } as const;

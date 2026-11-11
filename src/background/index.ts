@@ -12,7 +12,6 @@ import { fetchBedbugs } from './datasets/bedbugs';
 import { fetchComplaints } from './datasets/complaints-311';
 import { fetchStopWork } from './datasets/stop-work';
 import { fetchViolations } from './datasets/hpd-violations';
-import { fetchLotInfo } from './datasets/pluto';
 import { geocode } from './geocode';
 import { createRequestHandler } from './handle-request';
 import { buildReport } from './report';
@@ -28,7 +27,6 @@ const cachedReport = createCachedReporter(
       complaints: (bbl) => fetchComplaints(bbl),
       stopWork: (bin) => fetchStopWork(bin),
       bedbugs: (bbl) => fetchBedbugs(bbl),
-      lot: (bbl) => fetchLotInfo(bbl),
     }),
   {
     store: {

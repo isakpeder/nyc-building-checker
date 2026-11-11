@@ -13,7 +13,6 @@ import type { BedbugStatus } from './datasets/bedbugs';
 import type { ComplaintSummary } from './datasets/complaints-311';
 import type { StopWorkSummary } from './datasets/stop-work';
 import type { ViolationSummary } from './datasets/hpd-violations';
-import type { LotInfo } from './datasets/pluto';
 import type { Building, GeocodeError } from './geocode';
 import type { HttpError } from './http/fetch-json';
 
@@ -29,7 +28,6 @@ export interface ReportDeps {
   readonly complaints: Source<string, ComplaintSummary>;
   readonly stopWork: Source<string, StopWorkSummary>;
   readonly bedbugs: Source<string, BedbugStatus>;
-  readonly lot: Source<string, LotInfo | null>;
   readonly now?: () => Date;
 }
 
@@ -92,24 +90,21 @@ export async function buildReport(
   }
   const { bbl, bin } = building.value;
 
-  const [violations, complaints, stopWork, bedbugs, lot] =
-    await Promise.allSettled([
-      deps.violations(bbl),
-      deps.complaints(bbl),
-      // DOB data is keyed by BIN, which some lots don't have.
-      bin === null
-        ? Promise.resolve(err<HttpError>({ kind: 'invalid-response' }))
-        : deps.stopWork(bin),
-      deps.bedbugs(bbl),
-      deps.lot(bbl),
-    ]);
+  const [violations, complaints, stopWork, bedbugs] = await Promise.allSettled([
+    deps.violations(bbl),
+    deps.complaints(bbl),
+    // DOB data is keyed by BIN, which some lots don't have.
+    bin === null
+      ? Promise.resolve(err<HttpError>({ kind: 'invalid-response' }))
+      : deps.stopWork(bin),
+    deps.bedbugs(bbl),
+  ]);
 
   const sections = {
     violations: toSection(violations),
     complaints: toSection(complaints),
     stopWork: toSection(stopWork),
     bedbugs: toSection(bedbugs),
-    lot: toSection(lot),
   };
   const now = deps.now?.() ?? new Date();
 

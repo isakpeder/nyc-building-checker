@@ -91,15 +91,6 @@ function report(openViolations = 0, incidents = 0): BuildingReport {
       },
       stopWork: { status: 'unavailable' },
       bedbugs: { status: 'ok', data: { kind: 'no-filing' } },
-      lot: {
-        status: 'ok',
-        data: {
-          residentialUnits: 52,
-          totalUnits: 52,
-          yearBuilt: 1931,
-          floors: 5,
-        },
-      },
     },
     builtAt: '2026-11-11T00:00:00.000Z',
   };
@@ -126,7 +117,6 @@ describe('Panel', () => {
     expect(screen.getByText('Housing violations (HPD)')).toBeDefined();
     expect(screen.getByText('2 open')).toBeDefined();
     expect(screen.getByText('No filing on record')).toBeDefined();
-    expect(screen.getByText('52 units, built 1931')).toBeDefined();
   });
 
   it('shows a source that did not load as unavailable', () => {

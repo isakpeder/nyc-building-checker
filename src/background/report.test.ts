@@ -52,7 +52,6 @@ function deps(overrides: Partial<ReportDeps> = {}) {
       .fn()
       .mockResolvedValue(ok({ active: [], rescinded: 0, truncated: false })),
     bedbugs: vi.fn().mockResolvedValue(ok({ kind: 'no-filing' })),
-    lot: vi.fn().mockResolvedValue(ok(null)),
     now: () => new Date('2026-11-11T06:00:00Z'),
     ...overrides,
   } satisfies ReportDeps;
@@ -102,7 +101,7 @@ describe('buildReport', () => {
     expect(result.ok && result.value.sections.bedbugs).toEqual({
       status: 'unavailable',
     });
-    expect(result.ok && result.value.sections.lot.status).toBe('ok');
+    expect(result.ok && result.value.sections.violations.status).toBe('ok');
     error.mockRestore();
   });
 

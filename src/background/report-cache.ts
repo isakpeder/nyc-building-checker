@@ -13,7 +13,7 @@ import type { BuildingReport, ReportError } from '../shared/messages';
 import { ok, type Result } from '../shared/result';
 
 /** Bump when the stored report format changes. */
-export const CACHE_VERSION = 5;
+export const CACHE_VERSION = 6;
 
 const PREFIX = `report:v${String(CACHE_VERSION)}:`;
 const INDEX_KEY = `report-index:v${String(CACHE_VERSION)}`;
@@ -60,8 +60,8 @@ export function cacheKey(address: ListingAddress): string {
  * @returns `true` when no section is unavailable.
  */
 function isComplete(report: BuildingReport): boolean {
-  const { violations, complaints, stopWork, bedbugs, lot } = report.sections;
-  return [violations, complaints, stopWork, bedbugs, lot].every(
+  const { violations, complaints, stopWork, bedbugs } = report.sections;
+  return [violations, complaints, stopWork, bedbugs].every(
     (section) => section.status === 'ok',
   );
 }

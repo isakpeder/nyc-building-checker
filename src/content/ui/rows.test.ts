@@ -60,15 +60,6 @@ function report(
         data: { active: [], rescinded: 0, truncated: false },
       },
       bedbugs: { status: 'ok', data: { kind: 'no-filing' } },
-      lot: {
-        status: 'ok',
-        data: {
-          residentialUnits: 52,
-          totalUnits: 54,
-          yearBuilt: 1931,
-          floors: 5,
-        },
-      },
       ...sections,
     },
     builtAt: '2026-11-11T00:00:00.000Z',
@@ -95,7 +86,6 @@ describe('buildRows', () => {
       'complaints',
       'stopWork',
       'bedbugs',
-      'lot',
     ]);
   });
 
@@ -115,7 +105,6 @@ describe('buildRows', () => {
       value: 'No filing on record',
       warning: false,
     });
-    expect(row(rows, 'lot').value).toBe('52 units, built 1931');
   });
 
   it('flags open class C violations', () => {
@@ -238,31 +227,6 @@ describe('buildRows', () => {
       detail: 'Filed Feb 2026',
       warning,
     });
-  });
-
-  it.each([
-    [
-      { residentialUnits: 1, totalUnits: 1, yearBuilt: 1901, floors: 3 },
-      '1 unit, built 1901',
-    ],
-    [
-      { residentialUnits: 0, totalUnits: 1, yearBuilt: null, floors: 2 },
-      'Not listed in city records',
-    ],
-    [
-      {
-        residentialUnits: null,
-        totalUnits: null,
-        yearBuilt: 2023,
-        floors: null,
-      },
-      'built 2023',
-    ],
-    [null, 'Not listed in city records'],
-  ])('describes lot %j', (data, value) => {
-    expect(
-      row(buildRows(report({ lot: { status: 'ok', data } })), 'lot').value,
-    ).toBe(value);
   });
 
   it('shows a source that did not load as unavailable', () => {

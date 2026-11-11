@@ -107,7 +107,7 @@ function loaded<T>(section: Section<T>): T | null {
  */
 export function buildRows(report: BuildingReport): RowModel[] {
   const { bbl, bin } = report.building;
-  const { violations, complaints, stopWork, bedbugs, lot } = report.sections;
+  const { violations, complaints, stopWork, bedbugs } = report.sections;
   const rows: RowModel[] = [];
 
   const hpd = loaded(violations);
@@ -215,28 +215,6 @@ export function buildRows(report: BuildingReport): RowModel[] {
         : {}),
       warning: bugs.kind === 'reported' && bugs.infestedUnits > 0,
       href: sourceUrl(DATASETS.bedbugs, 'bbl', bbl),
-    });
-  }
-
-  const info = loaded(lot);
-  const lotHref = sourceUrl(DATASETS.pluto, 'bbl', bbl);
-  if (lot.status !== 'ok') {
-    rows.push(unavailable('lot', 'Building', lotHref));
-  } else {
-    const units = info?.residentialUnits ?? null;
-    const year = info?.yearBuilt ?? null;
-    const parts = [
-      units === null || units === 0
-        ? null
-        : `${units.toLocaleString('en-US')} ${units === 1 ? 'unit' : 'units'}`,
-      year === null ? null : `built ${String(year)}`,
-    ].filter((part) => part !== null);
-    rows.push({
-      key: 'lot',
-      label: 'Building',
-      value:
-        parts.length === 0 ? 'Not listed in city records' : parts.join(', '),
-      href: lotHref,
     });
   }
 
