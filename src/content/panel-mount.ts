@@ -17,14 +17,9 @@ const ANCHOR = '[data-testid="homeAddress"]';
  *
  * @param root - The listing page's document.
  * @param key - Identifies the listing. A panel with the same key is kept.
- * @param label - The text to show in the panel.
  * @returns The panel host element.
  */
-export function mountPanel(
-  root: Document,
-  key: string,
-  label: string,
-): HTMLElement {
+export function mountPanel(root: Document, key: string): HTMLElement {
   const existing = root.getElementById(PANEL_ID);
   if (existing?.dataset.listingKey === key) {
     return existing;
@@ -34,9 +29,6 @@ export function mountPanel(
   const host = root.createElement('div');
   host.id = PANEL_ID;
   host.dataset.listingKey = key;
-  host.textContent = label;
-  host.style.cssText =
-    'margin:12px 0;padding:12px;border:1px solid #ccc;border-radius:8px;font:14px system-ui,sans-serif;';
 
   const anchor = root.querySelector(ANCHOR);
   if (anchor === null) {

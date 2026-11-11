@@ -1,8 +1,10 @@
 // Vitest configuration, read by the test and test:coverage scripts.
 
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  plugins: [react()],
   test: {
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {

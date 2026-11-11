@@ -14,7 +14,7 @@ import { ok, type Result } from '../../shared/result';
 import type { FetchJsonOptions, HttpError } from '../http/fetch-json';
 import { queryDataset } from '../socrata/client';
 import { soql } from '../socrata/soql';
-import { DATASETS } from './ids';
+import { DATASETS } from '../../shared/datasets';
 
 /** A complaint category relevant to renters. */
 export type ComplaintCategory =

@@ -1,5 +1,6 @@
 /**
- * NYC Open Data dataset IDs used by the background worker.
+ * NYC Open Data dataset IDs. Used by the background worker's fetchers and by the
+ * panel's source links.
  *
  * Each ID was checked against data.cityofnewyork.us on 2026-11-05.
  */

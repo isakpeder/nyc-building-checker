@@ -6,17 +6,32 @@
  * page load and every in-page navigation after it.
  */
 
-import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { createListingController } from './controller';
 import { extractListingAddress } from './extract';
 import { sendRequest } from './messaging';
-import { summarizeResponse } from './report-summary';
-import { mountPanel, unmountPanel } from './panel-mount';
+import { mountPanel, PANEL_ID, unmountPanel } from './panel-mount';
+import { attachPanel, type PanelRoot } from './ui/panel-root';
 import { watchUrl } from './url-watcher';
 import { waitForElement } from './wait-for-element';
 
 /** How long to wait for a listing's content after navigation, in milliseconds. */
 const LISTING_TIMEOUT_MS = 10_000;
+
+/** The React root rendered into each panel host. */
+const roots = new WeakMap<HTMLElement, PanelRoot>();
+
+/**
+ * Unmounts the React panel on the page's panel host, unless it shows `keepKey`.
+ *
+ * @param keepKey - A listing key whose panel should be kept.
+ */
+function releasePanel(keepKey?: string): void {
+  const host = document.getElementById(PANEL_ID);
+  if (host !== null && host.dataset.listingKey !== keepKey) {
+    roots.get(host)?.unmount();
+    roots.delete(host);
+  }
+}
 
 const controller = createListingController({
   waitForListing: async (signal) =>
@@ -28,18 +43,25 @@ const controller = createListingController({
     )) !== null,
   extract: () => extractListingAddress(document),
   mount: (key, address) => {
-    const unit = address.unit === null ? '' : ` #${address.unit}`;
-    const label = `${EXTENSION_SHORT_NAME}: ${address.street}${unit}`;
-    const panel = mountPanel(document, key, `${label} (loading)`);
+    releasePanel(key);
+    const host = mountPanel(document, key);
+    let panel = roots.get(host);
+    if (panel === undefined) {
+      panel = attachPanel(host);
+      roots.set(host, panel);
+    }
+    panel.render({ status: 'loading', address });
 
+    const rendered = panel;
     void sendRequest({ type: 'get-report', address }).then((response) => {
       // The panel may have been replaced by a newer listing while waiting.
-      if (panel.isConnected && panel.dataset.listingKey === key) {
-        panel.textContent = `${label}: ${summarizeResponse(response)}`;
+      if (host.isConnected && host.dataset.listingKey === key) {
+        rendered.render({ status: 'done', address, response });
       }
     });
   },
   unmount: () => {
+    releasePanel();
     unmountPanel(document);
   },
 });
