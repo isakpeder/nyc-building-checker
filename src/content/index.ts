@@ -9,6 +9,7 @@
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { createListingController } from './controller';
 import { extractListingAddress } from './extract';
+import { sendRequest } from './messaging';
 import { mountPanel, unmountPanel } from './panel-mount';
 import { watchUrl } from './url-watcher';
 import { waitForElement } from './wait-for-element';
@@ -27,11 +28,17 @@ const controller = createListingController({
   extract: () => extractListingAddress(document),
   mount: (key, address) => {
     const unit = address.unit === null ? '' : ` #${address.unit}`;
-    mountPanel(
-      document,
-      key,
-      `${EXTENSION_SHORT_NAME}: ${address.street}${unit}`,
-    );
+    const label = `${EXTENSION_SHORT_NAME}: ${address.street}${unit}`;
+    const panel = mountPanel(document, key, `${label} (loading)`);
+
+    void sendRequest({ type: 'get-report', address }).then((response) => {
+      // The panel may have been replaced by a newer listing while waiting.
+      if (panel.isConnected && panel.dataset.listingKey === key) {
+        panel.textContent = response.ok
+          ? `${label} (report received)`
+          : `${label} (report ${response.error})`;
+      }
+    });
   },
   unmount: () => {
     unmountPanel(document);

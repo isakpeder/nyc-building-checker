@@ -6,9 +6,26 @@
  */
 
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
+import { parseRequest } from '../shared/messages';
+import { err } from '../shared/result';
+import { handleRequest } from './handle-request';
 
 // Listeners are registered at the top level so they exist as soon as the worker
 // starts, before Chrome delivers the event that woke it.
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log(`${EXTENSION_SHORT_NAME}: onInstalled (${reason})`);
 });
+
+chrome.runtime.onMessage.addListener(
+  (message: unknown, _sender, sendResponse) => {
+    const request = parseRequest(message);
+    if (!request.ok) {
+      sendResponse(err('invalid-request'));
+      return false;
+    }
+
+    void handleRequest(request.value).then(sendResponse);
+    // Returning true keeps the response channel open until sendResponse is called.
+    return true;
+  },
+);
