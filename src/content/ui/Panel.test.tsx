@@ -11,14 +11,15 @@ import {
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act } from 'react';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ListingAddress } from '../../shared/address/listing-address';
 import type { StreetAddress } from '../../shared/address/street';
 import type { BuildingReport } from '../../shared/messages';
 import { err, ok } from '../../shared/result';
-import { DETAIL_LIMIT, shorten } from './Details';
-import { Panel } from './Panel';
+import { DETAIL_LIMIT, splitCitation } from './Details';
+import { Panel, SLOW_LOADING_MS } from './Panel';
 import { attachPanel } from './panel-root';
 
 afterEach(() => {
@@ -91,15 +92,6 @@ function report(openViolations = 0, incidents = 0): BuildingReport {
       },
       stopWork: { status: 'unavailable' },
       bedbugs: { status: 'ok', data: { kind: 'no-filing' } },
-      lot: {
-        status: 'ok',
-        data: {
-          residentialUnits: 52,
-          totalUnits: 52,
-          yearBuilt: 1931,
-          floors: 5,
-        },
-      },
     },
     builtAt: '2026-11-11T00:00:00.000Z',
   };
@@ -116,6 +108,18 @@ describe('Panel', () => {
     expect(screen.getByLabelText('Loading city records')).toBeDefined();
   });
 
+  it('says when loading is slow, and only then', () => {
+    vi.useFakeTimers();
+    render(<Panel view={{ status: 'loading', address: ADDRESS }} />);
+
+    expect(screen.getByText(/Looking up city records/)).toBeDefined();
+    act(() => {
+      vi.advanceTimersByTime(SLOW_LOADING_MS);
+    });
+    expect(screen.getByText(/City servers are slow right now/)).toBeDefined();
+    vi.useRealTimers();
+  });
+
   it('shows one labeled value per source', () => {
     render(
       <Panel
@@ -124,9 +128,8 @@ describe('Panel', () => {
     );
 
     expect(screen.getByText('Housing violations (HPD)')).toBeDefined();
-    expect(screen.getByText('2 open')).toBeDefined();
+    expect(screen.getByText('2 open on record')).toBeDefined();
     expect(screen.getByText('No filing on record')).toBeDefined();
-    expect(screen.getByText('52 units, built 1931')).toBeDefined();
   });
 
   it('shows a source that did not load as unavailable', () => {
@@ -178,47 +181,76 @@ describe('Panel', () => {
 });
 
 describe('Details', () => {
-  it('starts collapsed and toggles with the button', () => {
+  // jsdom has no modal dialogs, so open and close only toggle the attribute.
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = function showModal(
+      this: HTMLDialogElement,
+    ) {
+      this.open = true;
+    };
+    HTMLDialogElement.prototype.close = function close(
+      this: HTMLDialogElement,
+    ) {
+      this.open = false;
+    };
+  });
+
+  it('opens the records in a dialog and closes it', () => {
     render(
       <Panel
         view={{ status: 'done', address: ADDRESS, response: ok(report(1, 1)) }}
       />,
     );
-    const button = screen.getByRole('button', { name: 'Show details' });
 
-    expect(button.getAttribute('aria-expanded')).toBe('false');
+    const dialog = screen.getByRole('dialog', { hidden: true });
+    expect((dialog as HTMLDialogElement).open).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+
+    expect((dialog as HTMLDialogElement).open).toBe(true);
     expect(
-      screen.queryByRole('heading', { name: 'Open violations' }),
-    ).toBeNull();
-
-    fireEvent.click(button);
-
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-    expect(
-      screen.getByRole('heading', { name: 'Open violations' }),
+      within(dialog).getByRole('heading', { name: 'Building records' }),
     ).toBeDefined();
-    expect(screen.getByText(/REPAIR ITEM 0/)).toBeDefined();
+    expect(within(dialog).getByText('REPAIR ITEM 0')).toBeDefined();
     expect(
-      screen.getByText(/HEAT\/HOT WATER \/ ENTIRE BUILDING \(2 reports\)/),
+      within(dialog).getByText(
+        /HEAT\/HOT WATER \/ ENTIRE BUILDING \(2 reports\)/,
+      ),
     ).toBeDefined();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hide details' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
 
-    expect(
-      screen.queryByRole('heading', { name: 'Open violations' }),
-    ).toBeNull();
+    expect((dialog as HTMLDialogElement).open).toBe(false);
+  });
+
+  it('closes when the backdrop is clicked', () => {
+    render(
+      <Panel
+        view={{ status: 'done', address: ADDRESS, response: ok(report(1)) }}
+      />,
+    );
+    const dialog = screen.getByRole<HTMLDialogElement>('dialog', {
+      hidden: true,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+
+    fireEvent.click(dialog);
+
+    expect(dialog.open).toBe(false);
   });
 
   it('caps each list and says how many there are', () => {
     render(
       <Panel
-        view={{ status: 'done', address: ADDRESS, response: ok(report(25)) }}
+        view={{ status: 'done', address: ADDRESS, response: ok(report(60)) }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+    const dialog = screen.getByRole('dialog', { hidden: true });
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(DETAIL_LIMIT);
-    expect(screen.getByText(/showing 10 of 25/)).toBeDefined();
+    expect(
+      within(dialog).getAllByRole('listitem', { hidden: true }),
+    ).toHaveLength(DETAIL_LIMIT);
+    expect(within(dialog).getByText(/newest 50 of 60/)).toBeDefined();
   });
 
   it('is left out when there are no records to list', () => {
@@ -230,10 +262,25 @@ describe('Details', () => {
 
     expect(screen.queryByRole('button')).toBeNull();
   });
+});
 
-  it('shortens long descriptions at a word boundary', () => {
-    expect(shorten('short')).toBe('short');
-    expect(shorten('alpha beta gamma delta', 12)).toBe('alpha beta…');
+describe('splitCitation', () => {
+  it.each([
+    [
+      '§ 27-2005, 27-2007 HMC, §238 MDL AND 28 RCNY §25-171: REPLACE THE SELF-CLOSING DOORS',
+      {
+        text: 'REPLACE THE SELF-CLOSING DOORS',
+        citation: '§ 27-2005, 27-2007 HMC, §238 MDL AND 28 RCNY §25-171',
+      },
+    ],
+    [
+      '§ 27-2031 ADM CODE PROVIDE HOT WATER',
+      { text: '§ 27-2031 ADM CODE PROVIDE HOT WATER', citation: null },
+    ],
+    ['NOTE: CALL THE OWNER', { text: 'NOTE: CALL THE OWNER', citation: null }],
+    ['REPAIR THE STEPS', { text: 'REPAIR THE STEPS', citation: null }],
+  ])('splits %j', (description, expected) => {
+    expect(splitCitation(description)).toEqual(expected);
   });
 });
 

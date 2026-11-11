@@ -76,7 +76,7 @@ a:focus-visible {
 
 .row {
   display: grid;
-  grid-template-columns: minmax(140px, 38%) 1fr;
+  grid-template-columns: minmax(120px, 34%) 1fr auto;
   gap: 12px;
   padding: 8px 0;
   border-top: 1px solid rgb(0 0 0 / 8%);
@@ -114,9 +114,13 @@ a:focus-visible {
 }
 
 .source {
-  margin-left: auto;
+  margin: 0;
   font-size: 12px;
-  font-weight: 400;
+}
+
+.loading-message {
+  margin: 0 0 8px;
+  color: rgb(0 0 0 / 60%);
 }
 
 .footer {
@@ -124,6 +128,10 @@ a:focus-visible {
   border-top: 1px solid rgb(0 0 0 / 10%);
   color: rgb(0 0 0 / 60%);
   font-size: 12px;
+}
+
+.row .skeleton:last-child {
+  grid-column: 2 / 4;
 }
 
 .skeleton {
@@ -172,12 +180,16 @@ a:focus-visible {
 }
 
 .detail-list {
-  margin-top: 8px;
+  margin-top: 16px;
+}
+
+.detail-list:first-child {
+  margin-top: 0;
 }
 
 .detail-title {
-  margin: 0 0 4px;
-  font-size: 13px;
+  margin: 0 0 6px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -188,10 +200,66 @@ a:focus-visible {
 
 .detail-list ul {
   margin: 0;
-  padding-left: 18px;
-  font-size: 13px;
+  padding: 0;
+  list-style: none;
 }
 
 .detail-list li {
-  margin: 2px 0;
+  padding: 8px 0;
+  border-top: 1px solid rgb(0 0 0 / 8%);
+}
+
+.item-meta {
+  display: block;
+  color: rgb(0 0 0 / 60%);
+  font-size: 12px;
+}
+
+.item-text {
+  display: block;
+}
+
+.item-citation {
+  display: block;
+  margin-top: 2px;
+  color: rgb(0 0 0 / 60%);
+  font-size: 12px;
+}
+
+.key {
+  margin: 0 0 8px;
+  color: rgb(0 0 0 / 70%);
+  font-size: 13px;
+}
+
+.dialog {
+  width: min(640px, 92vw);
+  max-height: 80vh;
+  padding: 0;
+  border: 1px solid rgb(0 0 0 / 15%);
+  border-radius: 0;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.dialog::backdrop {
+  background: rgb(0 0 0 / 35%);
+}
+
+.dialog-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+  background: #fff;
+}
+
+.dialog-body {
+  padding: 12px 16px 16px;
 }

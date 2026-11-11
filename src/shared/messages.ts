@@ -13,7 +13,6 @@ import type { BedbugStatus } from '../background/datasets/bedbugs';
 import type { ComplaintSummary } from '../background/datasets/complaints-311';
 import type { StopWorkSummary } from '../background/datasets/stop-work';
 import type { ViolationSummary } from '../background/datasets/hpd-violations';
-import type { LotInfo } from '../background/datasets/pluto';
 import type { ListingAddress } from './address/listing-address';
 import { normalizeStreetAddress } from './address/street';
 import { normalizeUnit } from './address/unit';
@@ -38,7 +37,6 @@ export interface ReportSections {
   readonly complaints: Section<ComplaintSummary>;
   readonly stopWork: Section<StopWorkSummary>;
   readonly bedbugs: Section<BedbugStatus>;
-  readonly lot: Section<LotInfo | null>;
 }
 
 /** The building report for a listing. */

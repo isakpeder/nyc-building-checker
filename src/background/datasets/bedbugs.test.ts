@@ -1,5 +1,5 @@
 /**
- * Tests for the bedbug and PLUTO fetchers. Rows are synthetic, and HTTP is
+ * Tests for the bedbug filings fetcher. Rows are synthetic, and HTTP is
  * mocked with MSW.
  */
 
@@ -8,7 +8,6 @@ import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { fetchBedbugs, summarizeBedbugs, type BedbugRow } from './bedbugs';
-import { fetchLotInfo, toLotInfo } from './pluto';
 
 /**
  * Builds a raw bedbug filing.
@@ -94,37 +93,6 @@ describe('summarizeBedbugs', () => {
   });
 });
 
-describe('toLotInfo', () => {
-  it('reads numbers sent as text', () => {
-    expect(
-      toLotInfo({
-        unitsres: '113',
-        unitstotal: '115',
-        yearbuilt: '1967',
-        numfloors: '21.00000000',
-      }),
-    ).toEqual({
-      residentialUnits: 113,
-      totalUnits: 115,
-      yearBuilt: 1967,
-      floors: 21,
-    });
-  });
-
-  it('treats a year built of 0 and missing values as unknown', () => {
-    expect(toLotInfo({ yearbuilt: '0' })).toEqual({
-      residentialUnits: null,
-      totalUnits: null,
-      yearBuilt: null,
-      floors: null,
-    });
-  });
-
-  it('keeps zero residential units as zero', () => {
-    expect(toLotInfo({ unitsres: '0' }).residentialUnits).toBe(0);
-  });
-});
-
 describe('fetchers', () => {
   const server = setupServer();
   beforeAll(() => {
@@ -154,34 +122,5 @@ describe('fetchers', () => {
 
     expect(where).toBe("bbl = '1014167501'");
     expect(result.ok && result.value.kind).toBe('reported');
-  });
-
-  it('queries PLUTO by BBL as a number and reads one row', async () => {
-    const params: Record<string, string>[] = [];
-    server.use(
-      http.get(`${base}/64uk-42ks.json`, ({ request }) => {
-        params.push(Object.fromEntries(new URL(request.url).searchParams));
-        return HttpResponse.json([{ unitsres: '113', yearbuilt: '1967' }]);
-      }),
-    );
-
-    const result = await fetchLotInfo('1014167501', { retries: 0 });
-
-    expect(params[0]?.$where).toBe('bbl = 1014167501');
-    expect(params[0]?.$limit).toBe('1');
-    expect(result.ok && result.value?.residentialUnits).toBe(113);
-  });
-
-  it('returns null when PLUTO has no row for the lot', async () => {
-    server.use(http.get(`${base}/64uk-42ks.json`, () => HttpResponse.json([])));
-
-    await expect(fetchLotInfo('1014167501', { retries: 0 })).resolves.toEqual({
-      ok: true,
-      value: null,
-    });
-  });
-
-  it('rejects a malformed BBL before querying', async () => {
-    await expect(fetchLotInfo('1 OR 1=1')).rejects.toThrow('Invalid BBL');
   });
 });

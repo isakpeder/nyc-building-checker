@@ -5,7 +5,7 @@
  * it shows as props and holds no state of its own.
  */
 
-import type { ReactElement } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 
 import type { ListingAddress } from '../../shared/address/listing-address';
 import { EXTENSION_SHORT_NAME } from '../../shared/constants';
@@ -35,7 +35,36 @@ export const ERROR_MESSAGES: Readonly<Record<ReportError, string>> = {
 };
 
 /** Number of placeholder rows while loading. */
-const SKELETON_ROWS = 5;
+const SKELETON_ROWS = 4;
+
+/** How long loading runs before the panel says the city's servers are slow. */
+export const SLOW_LOADING_MS = 5000;
+
+/**
+ * Renders the loading message, which changes once loading has taken a while.
+ *
+ * @returns The message.
+ */
+function LoadingMessage(): ReactElement {
+  const [slow, setSlow] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSlow(true);
+    }, SLOW_LOADING_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <p className="loading-message">
+      {slow
+        ? 'City servers are slow right now. Still trying…'
+        : 'Looking up city records for this building…'}
+    </p>
+  );
+}
 
 /**
  * Formats a listing address for the panel header.
@@ -70,8 +99,9 @@ function Row({ row }: { row: RowModel }): ReactElement {
         {row.detail !== undefined && (
           <span className="detail">{row.detail}</span>
         )}
+      </dd>
+      <dd className="source">
         <a
-          className="source"
           href={row.href}
           target="_blank"
           rel="noopener noreferrer"
@@ -104,14 +134,17 @@ export function Panel({ view }: { view: PanelView }): ReactElement {
       </header>
       <div className="body" aria-live="polite" aria-busy={loading}>
         {loading ? (
-          <dl className="rows" aria-label="Loading city records">
-            {Array.from({ length: SKELETON_ROWS }, (_, index) => (
-              <div className="row" key={index}>
-                <dt className="skeleton skeleton-label" />
-                <dd className="skeleton skeleton-value" />
-              </div>
-            ))}
-          </dl>
+          <>
+            <LoadingMessage />
+            <dl className="rows" aria-label="Loading city records">
+              {Array.from({ length: SKELETON_ROWS }, (_, index) => (
+                <div className="row" key={index}>
+                  <dt className="skeleton skeleton-label" />
+                  <dd className="skeleton skeleton-value" />
+                </div>
+              ))}
+            </dl>
+          </>
         ) : view.response.ok ? (
           <>
             <dl className="rows">

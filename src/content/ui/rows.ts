@@ -107,7 +107,7 @@ function loaded<T>(section: Section<T>): T | null {
  */
 export function buildRows(report: BuildingReport): RowModel[] {
   const { bbl, bin } = report.building;
-  const { violations, complaints, stopWork, bedbugs, lot } = report.sections;
+  const { violations, complaints, stopWork, bedbugs } = report.sections;
   const rows: RowModel[] = [];
 
   const hpd = loaded(violations);
@@ -128,9 +128,13 @@ export function buildRows(report: BuildingReport): RowModel[] {
       label: 'Housing violations (HPD)',
       value:
         open === 0
-          ? 'None open'
-          : `${countText(open, hpd.truncated)} open${C.open > 0 ? `, ${String(C.open)} immediately hazardous` : ''}`,
-      detail: `${countText(closed, hpd.truncated)} closed in the last 5 years`,
+          ? 'None open on record'
+          : `${countText(open, hpd.truncated)} open on record${C.open > 0 ? `, ${String(C.open)} class C` : ''}`,
+      ...(closed > 0
+        ? {
+            detail: `${countText(closed, hpd.truncated)} closed in the last 5 years`,
+          }
+        : {}),
       warning: C.open > 0,
       href: sourceUrl(DATASETS.hpdViolations, 'bbl', bbl),
     });
@@ -162,6 +166,8 @@ export function buildRows(report: BuildingReport): RowModel[] {
         ([category, { incidents }]) =>
           `${CATEGORY_NAMES[category]} ${String(incidents)}`,
       );
+    const other = calls.byCategory.other.incidents;
+    if (other > 0) top.push(`${String(other)} other`);
     rows.push({
       key: 'complaints',
       label: '311 complaints, last 3 years',
@@ -215,28 +221,6 @@ export function buildRows(report: BuildingReport): RowModel[] {
         : {}),
       warning: bugs.kind === 'reported' && bugs.infestedUnits > 0,
       href: sourceUrl(DATASETS.bedbugs, 'bbl', bbl),
-    });
-  }
-
-  const info = loaded(lot);
-  const lotHref = sourceUrl(DATASETS.pluto, 'bbl', bbl);
-  if (lot.status !== 'ok') {
-    rows.push(unavailable('lot', 'Building', lotHref));
-  } else {
-    const units = info?.residentialUnits ?? null;
-    const year = info?.yearBuilt ?? null;
-    const parts = [
-      units === null || units === 0
-        ? null
-        : `${units.toLocaleString('en-US')} ${units === 1 ? 'unit' : 'units'}`,
-      year === null ? null : `built ${String(year)}`,
-    ].filter((part) => part !== null);
-    rows.push({
-      key: 'lot',
-      label: 'Building',
-      value:
-        parts.length === 0 ? 'Not listed in city records' : parts.join(', '),
-      href: lotHref,
     });
   }
 

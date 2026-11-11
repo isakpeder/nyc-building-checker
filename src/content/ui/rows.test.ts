@@ -60,15 +60,6 @@ function report(
         data: { active: [], rescinded: 0, truncated: false },
       },
       bedbugs: { status: 'ok', data: { kind: 'no-filing' } },
-      lot: {
-        status: 'ok',
-        data: {
-          residentialUnits: 52,
-          totalUnits: 54,
-          yearBuilt: 1931,
-          floors: 5,
-        },
-      },
       ...sections,
     },
     builtAt: '2026-11-11T00:00:00.000Z',
@@ -95,7 +86,6 @@ describe('buildRows', () => {
       'complaints',
       'stopWork',
       'bedbugs',
-      'lot',
     ]);
   });
 
@@ -103,7 +93,7 @@ describe('buildRows', () => {
     const rows = buildRows(report());
 
     expect(row(rows, 'violations')).toMatchObject({
-      value: 'None open',
+      value: 'None open on record',
       warning: false,
     });
     expect(row(rows, 'complaints').value).toBe('None');
@@ -115,7 +105,6 @@ describe('buildRows', () => {
       value: 'No filing on record',
       warning: false,
     });
-    expect(row(rows, 'lot').value).toBe('52 units, built 1931');
   });
 
   it('flags open class C violations', () => {
@@ -138,10 +127,14 @@ describe('buildRows', () => {
     );
 
     expect(row(rows, 'violations')).toMatchObject({
-      value: '4 open, 2 immediately hazardous',
+      value: '4 open on record, 2 class C',
       detail: '5 closed in the last 5 years',
       warning: true,
     });
+  });
+
+  it('leaves out the closed count when it is zero', () => {
+    expect(row(buildRows(report()), 'violations').detail).toBeUndefined();
   });
 
   it('marks truncated counts with a plus', () => {
@@ -163,7 +156,7 @@ describe('buildRows', () => {
       }),
     );
 
-    expect(row(rows, 'violations').value).toBe('5,000+ open');
+    expect(row(rows, 'violations').value).toBe('5,000+ open on record');
   });
 
   it('lists the top three complaint categories, leaving out other', () => {
@@ -191,7 +184,7 @@ describe('buildRows', () => {
 
     expect(row(rows, 'complaints')).toMatchObject({
       value: '18 incidents',
-      detail: 'heat 4 · plumbing 3 · pests 2',
+      detail: 'heat 4 · plumbing 3 · pests 2 · 8 other',
     });
   });
 
@@ -240,36 +233,11 @@ describe('buildRows', () => {
     });
   });
 
-  it.each([
-    [
-      { residentialUnits: 1, totalUnits: 1, yearBuilt: 1901, floors: 3 },
-      '1 unit, built 1901',
-    ],
-    [
-      { residentialUnits: 0, totalUnits: 1, yearBuilt: null, floors: 2 },
-      'Not listed in city records',
-    ],
-    [
-      {
-        residentialUnits: null,
-        totalUnits: null,
-        yearBuilt: 2023,
-        floors: null,
-      },
-      'built 2023',
-    ],
-    [null, 'Not listed in city records'],
-  ])('describes lot %j', (data, value) => {
-    expect(
-      row(buildRows(report({ lot: { status: 'ok', data } })), 'lot').value,
-    ).toBe(value);
-  });
-
   it('shows a source that did not load as unavailable', () => {
     const rows = buildRows(report({ complaints: { status: 'unavailable' } }));
 
     expect(row(rows, 'complaints').value).toBeNull();
-    expect(row(rows, 'violations').value).toBe('None open');
+    expect(row(rows, 'violations').value).toBe('None open on record');
   });
 
   it('links each row to its records', () => {
