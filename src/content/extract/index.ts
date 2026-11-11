@@ -41,6 +41,10 @@ export function readJsonLdBlocks(root: ParentNode): unknown[] {
 /**
  * Extracts the listing's address, trying JSON-LD and then the address heading.
  *
+ * When both exist and name a different street or unit, the heading wins. After
+ * in-page navigation the JSON-LD can still describe the previous listing, while
+ * the heading is always rendered for the current one.
+ *
  * @param root - The listing page's document.
  * @returns The address and its source, or `not-found` if no source has one.
  */
@@ -48,11 +52,18 @@ export function extractListingAddress(
   root: ParentNode,
 ): Result<ExtractedAddress, 'not-found'> {
   const fromJsonLd = addressFromJsonLd(readJsonLdBlocks(root));
+  const fromHeading = addressFromHeading(root);
+
   if (fromJsonLd.ok) {
-    return ok({ address: fromJsonLd.value, source: 'json-ld' });
+    const agrees =
+      !fromHeading.ok ||
+      (fromHeading.value.street === fromJsonLd.value.street &&
+        fromHeading.value.unit === fromJsonLd.value.unit);
+    if (agrees) {
+      return ok({ address: fromJsonLd.value, source: 'json-ld' });
+    }
   }
 
-  const fromHeading = addressFromHeading(root);
   if (fromHeading.ok) {
     return ok({ address: fromHeading.value, source: 'heading' });
   }
