@@ -1,0 +1,63 @@
+<!-- Synthetic listing page reproducing only the structure the extension reads. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Example listing</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          { "@type": "Organization", "name": "Example Listings" },
+          {
+            "@type": "Person",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "99 Agent Office Avenue",
+              "addressLocality": "New York"
+            }
+          },
+          {
+            "@type": "ItemPage",
+            "mainEntity": {
+              "@type": "Apartment",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "10-20 Example Road #3M",
+                "addressLocality": "ASTORIA",
+                "addressRegion": "NY",
+                "postalCode": "11103"
+              }
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main>
+      <div data-testid="homeAddress">
+        <a href="/building/example-tower">
+          <h1 data-testid="address">10-20 Example Road #3M</h1>
+        </a>
+      </div>
+      <a id="next" href="/building/second-building/7c">Next listing</a>
+      <a id="search" href="/search">Back to search</a>
+    </main>
+    <script>
+      // Navigates in place, as the real site does, without loading a new page.
+      document.getElementById('next').addEventListener('click', (event) => {
+        event.preventDefault();
+        history.pushState({}, '', '/building/second-building/7c');
+        document.querySelector('[data-testid="address"]').textContent =
+          '5 Second Avenue #7C';
+        document.querySelector('script[type="application/ld+json"]').remove();
+      });
+      document.getElementById('search').addEventListener('click', (event) => {
+        event.preventDefault();
+        history.pushState({}, '', '/search');
+        document.querySelector('[data-testid="homeAddress"]').remove();
+      });
+    </script>
+  </body>
+</html>

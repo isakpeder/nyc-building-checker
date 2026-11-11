@@ -172,7 +172,9 @@ export function buildRows(report: BuildingReport): RowModel[] {
       key: 'complaints',
       label: '311 complaints, last 3 years',
       value:
-        total === 0 ? 'None' : `${countText(total, calls.truncated)} incidents`,
+        total === 0
+          ? 'None'
+          : `${countText(total, calls.truncated)} ${total === 1 ? 'incident' : 'incidents'}`,
       ...(top.length > 0 ? { detail: top.join(' · ') } : {}),
       href: sourceUrl(DATASETS.serviceRequests311, 'bbl', bbl),
     });
