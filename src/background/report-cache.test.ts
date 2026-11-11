@@ -217,7 +217,7 @@ describe('createCachedReporter', () => {
 
   it('uses a versioned key without the unit', () => {
     expect(cacheKey(address('1 MAIN STREET', '5A'))).toBe(
-      'report:v3:QUEENS|1 MAIN STREET',
+      'report:v4:QUEENS|1 MAIN STREET',
     );
   });
 });

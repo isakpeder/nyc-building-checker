@@ -18,11 +18,12 @@ import { DATASETS } from './ids';
 
 /** A complaint category relevant to renters. */
 export type ComplaintCategory =
-  'heat' | 'pests' | 'plumbing' | 'noise' | 'building' | 'other';
+  'heat' | 'pests' | 'rodents' | 'plumbing' | 'noise' | 'building' | 'other';
 
 export const COMPLAINT_CATEGORIES: readonly ComplaintCategory[] = [
   'heat',
   'pests',
+  'rodents',
   'plumbing',
   'noise',
   'building',
@@ -88,9 +89,9 @@ export function categorize(
 ): ComplaintCategory {
   const upperType = type.toUpperCase();
   if (upperType === 'HEAT/HOT WATER') return 'heat';
-  if (upperType === 'RODENT' || PEST_WORDS.test(descriptor.toUpperCase())) {
-    return 'pests';
-  }
+  // Rodent requests go to the Health Department, mostly for sightings outside.
+  if (upperType === 'RODENT') return 'rodents';
+  if (PEST_WORDS.test(descriptor.toUpperCase())) return 'pests';
   if (upperType === 'PLUMBING' || upperType === 'WATER LEAK') return 'plumbing';
   if (upperType.startsWith('NOISE')) return 'noise';
   if (agency === 'HPD' || agency === 'DOB') return 'building';
