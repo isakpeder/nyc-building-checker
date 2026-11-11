@@ -69,3 +69,85 @@ a:focus-visible {
   outline: 2px solid #0041d9;
   outline-offset: 2px;
 }
+
+.rows {
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(140px, 38%) 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgb(0 0 0 / 8%);
+}
+
+.row:first-child {
+  border-top: none;
+}
+
+.label {
+  color: rgb(0 0 0 / 60%);
+}
+
+.value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.detail {
+  color: rgb(0 0 0 / 60%);
+  font-weight: 400;
+}
+
+.warning {
+  color: #a4161a;
+}
+
+.muted {
+  color: rgb(0 0 0 / 50%);
+  font-weight: 400;
+}
+
+.source {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.footer {
+  padding: 8px 16px;
+  border-top: 1px solid rgb(0 0 0 / 10%);
+  color: rgb(0 0 0 / 50%);
+  font-size: 12px;
+}
+
+.skeleton {
+  height: 12px;
+  margin: 3px 0;
+  background: rgb(0 0 0 / 7%);
+}
+
+.skeleton-label {
+  width: 60%;
+}
+
+.skeleton-value {
+  width: 40%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton {
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}

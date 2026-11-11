@@ -9,7 +9,6 @@
 import { createListingController } from './controller';
 import { extractListingAddress } from './extract';
 import { sendRequest } from './messaging';
-import { summarizeResponse } from './report-summary';
 import { mountPanel, PANEL_ID, unmountPanel } from './panel-mount';
 import { attachPanel, type PanelRoot } from './ui/panel-root';
 import { watchUrl } from './url-watcher';
@@ -57,11 +56,7 @@ const controller = createListingController({
     void sendRequest({ type: 'get-report', address }).then((response) => {
       // The panel may have been replaced by a newer listing while waiting.
       if (host.isConnected && host.dataset.listingKey === key) {
-        rendered.render({
-          status: 'done',
-          address,
-          text: summarizeResponse(response),
-        });
+        rendered.render({ status: 'done', address, response });
       }
     });
   },

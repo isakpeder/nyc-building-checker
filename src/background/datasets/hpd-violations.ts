@@ -17,7 +17,7 @@ import { ok, type Result } from '../../shared/result';
 import type { FetchJsonOptions, HttpError } from '../http/fetch-json';
 import { queryDataset } from '../socrata/client';
 import { soql } from '../socrata/soql';
-import { DATASETS } from './ids';
+import { DATASETS } from '../../shared/datasets';
 
 /** An HPD violation class. */
 export type ViolationClass = 'A' | 'B' | 'C' | 'I';
