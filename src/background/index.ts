@@ -15,10 +15,21 @@ import { fetchViolations } from './datasets/hpd-violations';
 import { geocode } from './geocode';
 import { createRequestHandler } from './handle-request';
 import { buildReport } from './report';
-import { createCachedReporter } from './report-cache';
+import {
+  clearReportCache,
+  createCachedReporter,
+  type KeyValueStore,
+} from './report-cache';
 
 // Listeners are registered at the top level so they exist as soon as the worker
 // starts, before Chrome delivers the event that woke it.
+const store: KeyValueStore = {
+  get: async (key) => (await chrome.storage.local.get(key))[key],
+  set: (key, value) => chrome.storage.local.set({ [key]: value }),
+  remove: (keys) => chrome.storage.local.remove([...keys]),
+  keys: async () => Object.keys(await chrome.storage.local.get(null)),
+};
+
 const cachedReport = createCachedReporter(
   (address) =>
     buildReport(address, {
@@ -28,16 +39,13 @@ const cachedReport = createCachedReporter(
       stopWork: (bin) => fetchStopWork(bin),
       bedbugs: (bbl) => fetchBedbugs(bbl),
     }),
-  {
-    store: {
-      get: async (key) => (await chrome.storage.local.get(key))[key],
-      set: (key, value) => chrome.storage.local.set({ [key]: value }),
-      remove: (keys) => chrome.storage.local.remove([...keys]),
-    },
-  },
+  { store },
 );
 
-const handleRequest = createRequestHandler({ buildReport: cachedReport });
+const handleRequest = createRequestHandler({
+  buildReport: cachedReport,
+  clearCache: () => clearReportCache(store),
+});
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log(`${EXTENSION_SHORT_NAME}: onInstalled (${reason})`);

@@ -1,12 +1,12 @@
 /**
- * Sends requests from the content script to the background worker.
+ * Sends requests to the background worker, from the content script or the popup.
  *
  * Thin adapter over chrome.runtime.sendMessage. Responses come from the worker,
  * which shares these types, so they are trusted without a second validation.
  */
 
-import type { Request, ResponseFor } from '../shared/messages';
-import { err } from '../shared/result';
+import type { Request, ResponseFor } from './messages';
+import { err } from './result';
 
 /**
  * Sends a request to the background worker.

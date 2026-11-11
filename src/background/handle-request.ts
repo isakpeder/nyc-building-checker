@@ -14,13 +14,15 @@ import {
   type Request,
   type ResponseFor,
 } from '../shared/messages';
-import type { Result } from '../shared/result';
+import { err, ok, type Result } from '../shared/result';
 
 /** The services the request handler uses. */
 export interface HandlerDeps {
   readonly buildReport: (
     address: ListingAddress,
   ) => Promise<Result<BuildingReport, ReportError>>;
+  /** Deletes every saved report and returns how many there were. */
+  readonly clearCache: () => Promise<number>;
 }
 
 /**
@@ -34,13 +36,16 @@ export function createRequestHandler(
 ): (request: Request) => Promise<ResponseFor<Request['type']>> {
   return async (request) => {
     switch (request.type) {
-      // With one request type, the compiler sees this case as always matching. The
-      // switch stays so a new type without a case fails the typecheck.
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       case 'get-report':
         return deps.buildReport(request.address);
+      case 'clear-cache':
+        try {
+          return ok({ removed: await deps.clearCache() });
+        } catch {
+          return err('unavailable');
+        }
       default:
-        return assertNever(request.type);
+        return assertNever(request);
     }
   };
 }

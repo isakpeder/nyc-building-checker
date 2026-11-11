@@ -34,7 +34,16 @@ describe('parseRequest', () => {
       },
     });
 
-    expect(result.ok && result.value.address).toEqual(VALID.address);
+    expect(
+      result.ok && result.value.type === 'get-report' && result.value.address,
+    ).toEqual(VALID.address);
+  });
+
+  it('accepts a clear-cache request and drops extra fields', () => {
+    expect(parseRequest({ type: 'clear-cache', everything: true })).toEqual({
+      ok: true,
+      value: { type: 'clear-cache' },
+    });
   });
 
   it('drops fields the protocol does not define', () => {

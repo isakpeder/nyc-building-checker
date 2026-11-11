@@ -22,19 +22,44 @@ if (!REQUEST.ok) {
   throw new Error('fixture is invalid');
 }
 const request = REQUEST.value;
+if (request.type !== 'get-report') {
+  throw new Error('fixture is not a get-report request');
+}
 
 describe('createRequestHandler', () => {
   it('answers get-report with the built report', async () => {
     const buildReport = vi.fn().mockResolvedValue(err('building-not-found'));
 
     await expect(
-      createRequestHandler({ buildReport })(request),
+      createRequestHandler({ buildReport, clearCache: vi.fn() })(request),
     ).resolves.toEqual(err('building-not-found'));
     expect(buildReport).toHaveBeenCalledWith(request.address);
   });
 
+  it('answers clear-cache with the number removed', async () => {
+    const clearCache = vi.fn().mockResolvedValue(3);
+    const handle = createRequestHandler({ buildReport: vi.fn(), clearCache });
+
+    await expect(handle({ type: 'clear-cache' })).resolves.toEqual({
+      ok: true,
+      value: { removed: 3 },
+    });
+  });
+
+  it('reports a failed clear as unavailable', async () => {
+    const clearCache = vi.fn().mockRejectedValue(new Error('storage'));
+    const handle = createRequestHandler({ buildReport: vi.fn(), clearCache });
+
+    await expect(handle({ type: 'clear-cache' })).resolves.toEqual(
+      err('unavailable'),
+    );
+  });
+
   it('rejects a request type with no handler', async () => {
-    const handle = createRequestHandler({ buildReport: vi.fn() });
+    const handle = createRequestHandler({
+      buildReport: vi.fn(),
+      clearCache: vi.fn(),
+    });
 
     await expect(
       handle({ type: 'unknown' } as unknown as Request),

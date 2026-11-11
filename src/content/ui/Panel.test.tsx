@@ -19,7 +19,13 @@ import type { StreetAddress } from '../../shared/address/street';
 import type { BuildingReport } from '../../shared/messages';
 import { err, ok } from '../../shared/result';
 import { DETAIL_LIMIT, splitCitation } from './Details';
-import { Panel, SLOW_LOADING_MS } from './Panel';
+import {
+  FIRST_MESSAGE,
+  Panel,
+  ROTATE_MS,
+  SLOW_LOADING_MS,
+  SLOW_MESSAGES,
+} from './Panel';
 import { attachPanel } from './panel-root';
 
 afterEach(() => {
@@ -108,15 +114,25 @@ describe('Panel', () => {
     expect(screen.getByLabelText('Loading city records')).toBeDefined();
   });
 
-  it('says when loading is slow, and only then', () => {
+  it('rotates through friendly messages once loading is slow', () => {
     vi.useFakeTimers();
     render(<Panel view={{ status: 'loading', address: ADDRESS }} />);
+    const seen = [screen.getByText(FIRST_MESSAGE).textContent];
 
-    expect(screen.getByText(/Looking up city records/)).toBeDefined();
     act(() => {
       vi.advanceTimersByTime(SLOW_LOADING_MS);
     });
-    expect(screen.getByText(/City servers are slow right now/)).toBeDefined();
+    SLOW_MESSAGES.forEach(() => {
+      seen.push(document.querySelector('.loading-message')?.textContent ?? '');
+      act(() => {
+        vi.advanceTimersByTime(ROTATE_MS);
+      });
+    });
+
+    expect(seen).toEqual([FIRST_MESSAGE, ...SLOW_MESSAGES]);
+    expect(document.querySelector('.loading-message')?.textContent).toBe(
+      SLOW_MESSAGES[0],
+    );
     vi.useRealTimers();
   });
 

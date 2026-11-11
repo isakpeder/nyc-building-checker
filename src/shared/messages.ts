@@ -65,12 +65,19 @@ export interface GetReportRequest {
   readonly address: ListingAddress;
 }
 
-/** A message from the content script to the background worker. */
-export type Request = GetReportRequest;
+/** Asks the background worker to delete every saved report. */
+export interface ClearCacheRequest {
+  readonly type: 'clear-cache';
+}
+
+/** A message to the background worker, from the content script or the popup. */
+export type Request = GetReportRequest | ClearCacheRequest;
 
 /** The response type for each request type. */
 export interface ResponseMap {
   readonly 'get-report': Result<BuildingReport, ReportError>;
+  /** How many saved reports were deleted. */
+  readonly 'clear-cache': Result<{ readonly removed: number }, 'unavailable'>;
 }
 
 /** The response to a request of type `T`. */
@@ -92,6 +99,7 @@ const ListingAddressSchema = z.object({
 
 const RequestSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('get-report'), address: ListingAddressSchema }),
+  z.object({ type: z.literal('clear-cache') }),
 ]);
 
 /**
@@ -109,6 +117,10 @@ export function parseRequest(
   const parsed = RequestSchema.safeParse(message);
   if (!parsed.success) {
     return err('invalid-request');
+  }
+
+  if (parsed.data.type === 'clear-cache') {
+    return ok({ type: 'clear-cache' });
   }
 
   const { address } = parsed.data;

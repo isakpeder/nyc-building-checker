@@ -12,6 +12,7 @@ import { err, ok, type Result } from '../shared/result';
 import { createLimiter } from './http/limiter';
 import {
   cacheKey,
+  clearReportCache,
   createCachedReporter,
   type KeyValueStore,
 } from './report-cache';
@@ -75,6 +76,7 @@ function memoryStore() {
       for (const key of keys) data.delete(key);
       return Promise.resolve();
     },
+    keys: () => Promise.resolve([...data.keys()]),
   };
   return { store, data };
 }
@@ -217,6 +219,19 @@ describe('createCachedReporter', () => {
     expect(cacheKey(address('1 MAIN STREET', '5A'))).toBe(
       'report:v6:QUEENS|1 MAIN STREET',
     );
+  });
+});
+
+describe('clearReportCache', () => {
+  it('deletes reports and indexes from every version and nothing else', async () => {
+    const { store, data } = memoryStore();
+    data.set('report:v1:QUEENS|1 A STREET', {});
+    data.set('report:v6:QUEENS|2 B STREET', {});
+    data.set('report-index:v6', {});
+    data.set('settings', { enabled: true });
+
+    await expect(clearReportCache(store)).resolves.toBe(2);
+    expect([...data.keys()]).toEqual(['settings']);
   });
 });
 

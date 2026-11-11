@@ -1,0 +1,77 @@
+/* Styles for the popup page. */
+
+body {
+  width: 280px;
+  margin: 0;
+  color: #1a1a1a;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+}
+
+.popup {
+  padding: 16px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.setting {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-top: 1px solid rgb(0 0 0 / 10%);
+  cursor: pointer;
+}
+
+.setting input {
+  margin: 2px 0 0;
+}
+
+.hint {
+  display: block;
+  color: rgb(0 0 0 / 60%);
+  font-size: 12px;
+}
+
+.actions {
+  padding: 10px 0;
+  border-top: 1px solid rgb(0 0 0 / 10%);
+}
+
+.button {
+  padding: 6px 12px;
+  border: 1px solid #0041d9;
+  border-radius: 0;
+  background: #fff;
+  color: #0041d9;
+  font: inherit;
+  cursor: pointer;
+}
+
+.button:hover {
+  background: #f0f4ff;
+}
+
+.button:focus-visible,
+.setting input:focus-visible {
+  outline: 2px solid #0041d9;
+  outline-offset: 2px;
+}
+
+.status {
+  margin: 6px 0 0;
+  color: rgb(0 0 0 / 70%);
+  font-size: 12px;
+}
+
+.version {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgb(0 0 0 / 10%);
+  color: rgb(0 0 0 / 60%);
+  font-size: 12px;
+}

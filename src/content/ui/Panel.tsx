@@ -37,31 +37,50 @@ export const ERROR_MESSAGES: Readonly<Record<ReportError, string>> = {
 /** Number of placeholder rows while loading. */
 const SKELETON_ROWS = 4;
 
-/** How long loading runs before the panel says the city's servers are slow. */
+/** How long loading runs before the message starts changing. */
 export const SLOW_LOADING_MS = 5000;
 
+/** How long each message shows once loading is slow. */
+export const ROTATE_MS = 4000;
+
+/** The first loading message. */
+export const FIRST_MESSAGE = 'Looking up city records for this building…';
+
+/** Messages shown in turn once loading takes a while. */
+export const SLOW_MESSAGES = [
+  'Hang tight, still gathering records…',
+  'Still checking city records…',
+  'This can take a few more seconds…',
+  'Some city data is taking a moment…',
+];
+
 /**
- * Renders the loading message, which changes once loading has taken a while.
+ * Renders the loading message. After a while it rotates through messages that
+ * stay accurate however long loading takes.
  *
  * @returns The message.
  */
 function LoadingMessage(): ReactElement {
-  const [slow, setSlow] = useState(false);
+  // -1 shows the first message; 0 and up index into SLOW_MESSAGES.
+  const [step, setStep] = useState(-1);
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | undefined;
     const timer = setTimeout(() => {
-      setSlow(true);
+      setStep(0);
+      interval = setInterval(() => {
+        setStep((current) => (current + 1) % SLOW_MESSAGES.length);
+      }, ROTATE_MS);
     }, SLOW_LOADING_MS);
     return () => {
       clearTimeout(timer);
+      clearInterval(interval);
     };
   }, []);
 
   return (
     <p className="loading-message">
-      {slow
-        ? 'City servers are slow right now. Still trying…'
-        : 'Looking up city records for this building…'}
+      {step < 0 ? FIRST_MESSAGE : SLOW_MESSAGES[step]}
     </p>
   );
 }
