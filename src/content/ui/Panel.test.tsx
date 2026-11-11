@@ -122,12 +122,12 @@ describe('Panel', () => {
     act(() => {
       vi.advanceTimersByTime(SLOW_LOADING_MS);
     });
-    for (let i = 0; i < SLOW_MESSAGES.length; i++) {
+    SLOW_MESSAGES.forEach(() => {
       seen.push(document.querySelector('.loading-message')?.textContent ?? '');
       act(() => {
         vi.advanceTimersByTime(ROTATE_MS);
       });
-    }
+    });
 
     expect(seen).toEqual([FIRST_MESSAGE, ...SLOW_MESSAGES]);
     expect(document.querySelector('.loading-message')?.textContent).toBe(
