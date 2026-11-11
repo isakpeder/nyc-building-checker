@@ -9,6 +9,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 
 import type { ListingAddress } from '../../shared/address/listing-address';
 import { EXTENSION_SHORT_NAME } from '../../shared/constants';
+import type { AnalyticsEvent } from '../../shared/analytics-events';
 import type { BuildingReport, ReportError } from '../../shared/messages';
 import type { Result } from '../../shared/result';
 import { Details } from './Details';
@@ -100,10 +101,16 @@ export function addressLabel(address: ListingAddress): string {
 /**
  * Renders one report row.
  *
- * @param props - The row.
+ * @param props - The row, and a function that receives usage events.
  * @returns The row's term and description.
  */
-function Row({ row }: { row: RowModel }): ReactElement {
+function Row({
+  row,
+  onEvent,
+}: {
+  row: RowModel;
+  onEvent: (event: AnalyticsEvent) => void;
+}): ReactElement {
   return (
     <div className="row">
       <dt className="label">{row.label}</dt>
@@ -125,6 +132,9 @@ function Row({ row }: { row: RowModel }): ReactElement {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Source records for ${row.label}`}
+          onClick={() => {
+            onEvent({ name: 'source_link_clicked', source: row.key });
+          }}
         >
           Source
         </a>
@@ -136,10 +146,17 @@ function Row({ row }: { row: RowModel }): ReactElement {
 /**
  * Renders the panel.
  *
- * @param props - The panel's view.
+ * @param props - The panel's view, and a function that receives usage events.
  * @returns The panel element.
  */
-export function Panel({ view }: { view: PanelView }): ReactElement {
+export function Panel({
+  view,
+  onEvent = () => undefined,
+}: {
+  view: PanelView;
+  /** Receives usage events. Does nothing by default. */
+  onEvent?: (event: AnalyticsEvent) => void;
+}): ReactElement {
   const loading = view.status === 'loading';
 
   return (
@@ -168,10 +185,15 @@ export function Panel({ view }: { view: PanelView }): ReactElement {
           <>
             <dl className="rows">
               {buildRows(view.response.value).map((row) => (
-                <Row key={row.key} row={row} />
+                <Row key={row.key} row={row} onEvent={onEvent} />
               ))}
             </dl>
-            <Details report={view.response.value} />
+            <Details
+              report={view.response.value}
+              onOpen={() => {
+                onEvent({ name: 'details_opened' });
+              }}
+            />
           </>
         ) : (
           <p className="message">{ERROR_MESSAGES[view.response.error]}</p>

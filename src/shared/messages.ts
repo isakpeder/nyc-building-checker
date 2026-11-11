@@ -9,6 +9,7 @@
 import { z } from 'zod';
 
 import { parseBorough } from './address/borough';
+import { AnalyticsEventSchema, type AnalyticsEvent } from './analytics-events';
 import type { BedbugStatus } from '../background/datasets/bedbugs';
 import type { ComplaintSummary } from '../background/datasets/complaints-311';
 import type { StopWorkSummary } from '../background/datasets/stop-work';
@@ -71,13 +72,21 @@ export interface ClearCacheRequest {
 }
 
 /** A message to the background worker, from the content script or the popup. */
-export type Request = GetReportRequest | ClearCacheRequest;
+/** Asks the background worker to send an anonymous usage event. */
+export interface TrackRequest {
+  readonly type: 'track';
+  readonly event: AnalyticsEvent;
+}
+
+export type Request = GetReportRequest | ClearCacheRequest | TrackRequest;
 
 /** The response type for each request type. */
 export interface ResponseMap {
   readonly 'get-report': Result<BuildingReport, ReportError>;
   /** How many saved reports were deleted. */
   readonly 'clear-cache': Result<{ readonly removed: number }, 'unavailable'>;
+  /** Whether the event was sent. */
+  readonly track: Result<{ readonly sent: boolean }, 'unavailable'>;
 }
 
 /** The response to a request of type `T`. */
@@ -100,6 +109,7 @@ const ListingAddressSchema = z.object({
 const RequestSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('get-report'), address: ListingAddressSchema }),
   z.object({ type: z.literal('clear-cache') }),
+  z.object({ type: z.literal('track'), event: AnalyticsEventSchema }),
 ]);
 
 /**
@@ -121,6 +131,9 @@ export function parseRequest(
 
   if (parsed.data.type === 'clear-cache') {
     return ok({ type: 'clear-cache' });
+  }
+  if (parsed.data.type === 'track') {
+    return ok({ type: 'track', event: parsed.data.event });
   }
 
   const { address } = parsed.data;

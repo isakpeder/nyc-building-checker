@@ -7,6 +7,7 @@
  */
 
 import type { ListingAddress } from '../shared/address/listing-address';
+import type { AnalyticsEvent } from '../shared/analytics-events';
 import {
   assertNever,
   type BuildingReport,
@@ -23,6 +24,8 @@ export interface HandlerDeps {
   ) => Promise<Result<BuildingReport, ReportError>>;
   /** Deletes every saved report and returns how many there were. */
   readonly clearCache: () => Promise<number>;
+  /** Sends a usage event, resolving to whether it was sent. */
+  readonly track: (event: AnalyticsEvent) => Promise<boolean>;
 }
 
 /**
@@ -44,6 +47,8 @@ export function createRequestHandler(
         } catch {
           return err('unavailable');
         }
+      case 'track':
+        return ok({ sent: await deps.track(request.event) });
       default:
         return assertNever(request);
     }

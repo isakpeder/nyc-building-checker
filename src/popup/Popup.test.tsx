@@ -17,7 +17,7 @@ describe('Popup', () => {
   it('shows the setting and version', () => {
     render(
       <Popup
-        settings={{ enabled: true }}
+        settings={{ enabled: true, shareUsage: true }}
         version="0.1.0"
         onChange={vi.fn()}
         onClearCache={vi.fn()}
@@ -36,23 +36,43 @@ describe('Popup', () => {
     const onChange = vi.fn();
     render(
       <Popup
-        settings={{ enabled: true }}
+        settings={{ enabled: true, shareUsage: true }}
         version="0.1.0"
         onChange={onChange}
         onClearCache={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: /Show building records/ }),
+    );
 
-    expect(onChange).toHaveBeenCalledWith({ enabled: false });
+    expect(onChange).toHaveBeenCalledWith({ enabled: false, shareUsage: true });
+  });
+
+  it('reports a change to usage sharing', () => {
+    const onChange = vi.fn();
+    render(
+      <Popup
+        settings={{ enabled: true, shareUsage: true }}
+        version="0.1.0"
+        onChange={onChange}
+        onClearCache={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: /Share anonymous usage stats/ }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith({ enabled: true, shareUsage: false });
   });
 
   it('clears saved reports and says how many', async () => {
     const onClearCache = vi.fn().mockResolvedValue(3);
     render(
       <Popup
-        settings={{ enabled: true }}
+        settings={{ enabled: true, shareUsage: true }}
         version="0.1.0"
         onChange={vi.fn()}
         onClearCache={onClearCache}
@@ -85,8 +105,15 @@ describe('parseSettings', () => {
     ['on', DEFAULT_SETTINGS],
     [{}, DEFAULT_SETTINGS],
     [{ enabled: 'no' }, DEFAULT_SETTINGS],
-    [{ enabled: false }, { enabled: false }],
-    [{ enabled: true, extra: 1 }, { enabled: true }],
+    [{ enabled: false }, { enabled: false, shareUsage: true }],
+    [
+      { enabled: true, shareUsage: false },
+      { enabled: true, shareUsage: false },
+    ],
+    [
+      { enabled: true, extra: 1 },
+      { enabled: true, shareUsage: true },
+    ],
   ])('reads %j', (stored, expected) => {
     expect(parseSettings(stored)).toEqual(expected);
   });

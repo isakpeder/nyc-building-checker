@@ -12,16 +12,19 @@ import { z } from 'zod';
 export interface Settings {
   /** Show the building record panel on StreetEasy listings. */
   readonly enabled: boolean;
+  /** Send anonymous usage events. */
+  readonly shareUsage: boolean;
 }
 
 /** Settings used before the user changes anything. */
-export const DEFAULT_SETTINGS: Settings = { enabled: true };
+export const DEFAULT_SETTINGS: Settings = { enabled: true, shareUsage: true };
 
 /** The key settings are stored under in chrome.storage.sync. */
 export const SETTINGS_KEY = 'settings';
 
 const SettingsSchema = z.object({
   enabled: z.boolean().catch(DEFAULT_SETTINGS.enabled),
+  shareUsage: z.boolean().catch(DEFAULT_SETTINGS.shareUsage),
 });
 
 /**
@@ -31,8 +34,8 @@ const SettingsSchema = z.object({
  * @returns Valid settings.
  *
  * @example
- * parseSettings(undefined); // { enabled: true }
- * parseSettings({ enabled: 'no' }); // { enabled: true }
+ * parseSettings(undefined); // { enabled: true, shareUsage: true }
+ * parseSettings({ enabled: 'no' }); // { enabled: true, shareUsage: true }
  */
 export function parseSettings(stored: unknown): Settings {
   const parsed = SettingsSchema.safeParse(stored);

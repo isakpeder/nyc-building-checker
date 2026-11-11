@@ -62,6 +62,21 @@ export function Popup({
           <span className="hint">Applies to open tabs right away.</span>
         </span>
       </label>
+      <label className="setting">
+        <input
+          type="checkbox"
+          checked={settings.shareUsage}
+          onChange={(event) => {
+            onChange({ ...settings, shareUsage: event.target.checked });
+          }}
+        />
+        <span>
+          Share anonymous usage stats
+          <span className="hint">
+            Counts like which features are used. Never addresses or listings.
+          </span>
+        </span>
+      </label>
       <div className="actions">
         <button
           type="button"

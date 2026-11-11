@@ -8,6 +8,7 @@
 
 import { createRoot } from 'react-dom/client';
 
+import type { AnalyticsEvent } from '../../shared/analytics-events';
 import { Panel, type PanelView } from './Panel';
 import styles from './styles.css?inline';
 
@@ -21,9 +22,13 @@ export interface PanelRoot {
  * Attaches a shadow root with the panel's styles to a host element.
  *
  * @param host - The panel's host element, already in the page.
+ * @param onEvent - Receives usage events from the panel.
  * @returns Functions to render and remove the panel.
  */
-export function attachPanel(host: HTMLElement): PanelRoot {
+export function attachPanel(
+  host: HTMLElement,
+  onEvent?: (event: AnalyticsEvent) => void,
+): PanelRoot {
   // End-to-end test builds use an open root so the browser tests can reach the
   // panel. Every other build keeps it closed.
   const shadow = host.attachShadow({
@@ -38,7 +43,7 @@ export function attachPanel(host: HTMLElement): PanelRoot {
   const root = createRoot(container);
   return {
     render: (view) => {
-      root.render(<Panel view={view} />);
+      root.render(<Panel view={view} onEvent={onEvent} />);
     },
     unmount: () => {
       root.unmount();

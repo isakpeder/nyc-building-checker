@@ -54,6 +54,10 @@ jobs:
           fi
 
       - name: Build
+        # Analytics and the uninstall form stay off unless these secrets exist.
+        env:
+          VITE_POSTHOG_KEY: ${{ secrets.POSTHOG_KEY }}
+          VITE_UNINSTALL_FORM_URL: ${{ secrets.UNINSTALL_FORM_URL }}
         run: pnpm run build
 
       - name: Zip the extension
