@@ -15,6 +15,8 @@ export default defineManifest({
   short_name: EXTENSION_SHORT_NAME,
   description: pkg.description,
   version: pkg.version,
+  // AbortSignal.any, used for request timeouts, arrived in Chrome 116.
+  minimum_chrome_version: '116',
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',
