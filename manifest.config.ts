@@ -17,6 +17,7 @@ export default defineManifest({
   version: pkg.version,
   // AbortSignal.any, used for request timeouts, arrived in Chrome 116.
   minimum_chrome_version: '116',
+  permissions: ['storage'],
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',

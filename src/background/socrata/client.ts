@@ -14,9 +14,14 @@ import {
   type FetchJsonOptions,
   type HttpError,
 } from '../http/fetch-json';
+import { createLimiter } from '../http/limiter';
 import { toSearchParams, type SoqlQuery } from './soql';
 
 const BASE_URL = 'https://data.cityofnewyork.us/resource';
+
+/** Requests to NYC Open Data allowed at once, across every dataset. */
+const MAX_CONCURRENT_REQUESTS = 3;
+const requestSlot = createLimiter(MAX_CONCURRENT_REQUESTS);
 
 /** Rows requested per page. */
 export const PAGE_SIZE = 1000;
@@ -63,10 +68,12 @@ export async function queryDataset<T>(
   while (rows.length < maxRows) {
     const limit = Math.min(PAGE_SIZE, maxRows - rows.length);
     const params = toSearchParams({ ...ordered, limit, offset: rows.length });
-    const page = await fetchJson(
-      `${BASE_URL}/${datasetId}.json?${params.toString()}`,
-      z.array(rowSchema),
-      httpOptions,
+    const page = await requestSlot(() =>
+      fetchJson(
+        `${BASE_URL}/${datasetId}.json?${params.toString()}`,
+        z.array(rowSchema),
+        httpOptions,
+      ),
     );
     if (!page.ok) {
       return page;
