@@ -76,7 +76,7 @@ a:focus-visible {
 
 .row {
   display: grid;
-  grid-template-columns: minmax(140px, 38%) 1fr;
+  grid-template-columns: minmax(120px, 34%) 1fr auto;
   gap: 12px;
   padding: 8px 0;
   border-top: 1px solid rgb(0 0 0 / 8%);
@@ -114,9 +114,13 @@ a:focus-visible {
 }
 
 .source {
-  margin-left: auto;
+  margin: 0;
   font-size: 12px;
-  font-weight: 400;
+}
+
+.loading-message {
+  margin: 0 0 8px;
+  color: rgb(0 0 0 / 60%);
 }
 
 .footer {
@@ -124,6 +128,10 @@ a:focus-visible {
   border-top: 1px solid rgb(0 0 0 / 10%);
   color: rgb(0 0 0 / 60%);
   font-size: 12px;
+}
+
+.row .skeleton:last-child {
+  grid-column: 2 / 4;
 }
 
 .skeleton {

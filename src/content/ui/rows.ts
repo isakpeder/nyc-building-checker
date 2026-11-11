@@ -128,9 +128,13 @@ export function buildRows(report: BuildingReport): RowModel[] {
       label: 'Housing violations (HPD)',
       value:
         open === 0
-          ? 'None open'
-          : `${countText(open, hpd.truncated)} open${C.open > 0 ? `, ${String(C.open)} immediately hazardous` : ''}`,
-      detail: `${countText(closed, hpd.truncated)} closed in the last 5 years`,
+          ? 'None open on record'
+          : `${countText(open, hpd.truncated)} open on record${C.open > 0 ? `, ${String(C.open)} class C` : ''}`,
+      ...(closed > 0
+        ? {
+            detail: `${countText(closed, hpd.truncated)} closed in the last 5 years`,
+          }
+        : {}),
       warning: C.open > 0,
       href: sourceUrl(DATASETS.hpdViolations, 'bbl', bbl),
     });
@@ -162,6 +166,8 @@ export function buildRows(report: BuildingReport): RowModel[] {
         ([category, { incidents }]) =>
           `${CATEGORY_NAMES[category]} ${String(incidents)}`,
       );
+    const other = calls.byCategory.other.incidents;
+    if (other > 0) top.push(`${String(other)} other`);
     rows.push({
       key: 'complaints',
       label: '311 complaints, last 3 years',

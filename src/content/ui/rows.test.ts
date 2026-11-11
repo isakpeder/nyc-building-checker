@@ -93,7 +93,7 @@ describe('buildRows', () => {
     const rows = buildRows(report());
 
     expect(row(rows, 'violations')).toMatchObject({
-      value: 'None open',
+      value: 'None open on record',
       warning: false,
     });
     expect(row(rows, 'complaints').value).toBe('None');
@@ -127,10 +127,14 @@ describe('buildRows', () => {
     );
 
     expect(row(rows, 'violations')).toMatchObject({
-      value: '4 open, 2 immediately hazardous',
+      value: '4 open on record, 2 class C',
       detail: '5 closed in the last 5 years',
       warning: true,
     });
+  });
+
+  it('leaves out the closed count when it is zero', () => {
+    expect(row(buildRows(report()), 'violations').detail).toBeUndefined();
   });
 
   it('marks truncated counts with a plus', () => {
@@ -152,7 +156,7 @@ describe('buildRows', () => {
       }),
     );
 
-    expect(row(rows, 'violations').value).toBe('5,000+ open');
+    expect(row(rows, 'violations').value).toBe('5,000+ open on record');
   });
 
   it('lists the top three complaint categories, leaving out other', () => {
@@ -180,7 +184,7 @@ describe('buildRows', () => {
 
     expect(row(rows, 'complaints')).toMatchObject({
       value: '18 incidents',
-      detail: 'heat 4 · plumbing 3 · pests 2',
+      detail: 'heat 4 · plumbing 3 · pests 2 · 8 other',
     });
   });
 
@@ -233,7 +237,7 @@ describe('buildRows', () => {
     const rows = buildRows(report({ complaints: { status: 'unavailable' } }));
 
     expect(row(rows, 'complaints').value).toBeNull();
-    expect(row(rows, 'violations').value).toBe('None open');
+    expect(row(rows, 'violations').value).toBe('None open on record');
   });
 
   it('links each row to its records', () => {

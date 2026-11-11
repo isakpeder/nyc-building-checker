@@ -11,14 +11,15 @@ import {
   screen,
   within,
 } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act } from 'react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { ListingAddress } from '../../shared/address/listing-address';
 import type { StreetAddress } from '../../shared/address/street';
 import type { BuildingReport } from '../../shared/messages';
 import { err, ok } from '../../shared/result';
 import { DETAIL_LIMIT, shorten } from './Details';
-import { Panel } from './Panel';
+import { Panel, SLOW_LOADING_MS } from './Panel';
 import { attachPanel } from './panel-root';
 
 afterEach(() => {
@@ -107,6 +108,18 @@ describe('Panel', () => {
     expect(screen.getByLabelText('Loading city records')).toBeDefined();
   });
 
+  it('says when loading is slow, and only then', () => {
+    vi.useFakeTimers();
+    render(<Panel view={{ status: 'loading', address: ADDRESS }} />);
+
+    expect(screen.getByText(/Looking up city records/)).toBeDefined();
+    act(() => {
+      vi.advanceTimersByTime(SLOW_LOADING_MS);
+    });
+    expect(screen.getByText(/City servers are slow right now/)).toBeDefined();
+    vi.useRealTimers();
+  });
+
   it('shows one labeled value per source', () => {
     render(
       <Panel
@@ -115,7 +128,7 @@ describe('Panel', () => {
     );
 
     expect(screen.getByText('Housing violations (HPD)')).toBeDefined();
-    expect(screen.getByText('2 open')).toBeDefined();
+    expect(screen.getByText('2 open on record')).toBeDefined();
     expect(screen.getByText('No filing on record')).toBeDefined();
   });
 
