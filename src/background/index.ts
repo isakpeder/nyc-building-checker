@@ -7,6 +7,8 @@
 
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { parseRequest } from '../shared/messages';
+import { loadSettings } from '../shared/settings-store';
+import { createTracker, storedInstallId } from './analytics';
 import { err } from '../shared/result';
 import { fetchBedbugs } from './datasets/bedbugs';
 import { fetchComplaints } from './datasets/complaints-311';
@@ -42,13 +44,39 @@ const cachedReport = createCachedReporter(
   { store },
 );
 
+// Analytics stays off in development and end-to-end builds, and when no key is set.
+const track = createTracker({
+  projectKey:
+    import.meta.env.MODE === 'production'
+      ? (import.meta.env.VITE_POSTHOG_KEY ?? '')
+      : '',
+  version: chrome.runtime.getManifest().version,
+  shareUsage: async () => (await loadSettings()).shareUsage,
+  installId: storedInstallId,
+  send: (url, body) =>
+    fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }),
+});
+
 const handleRequest = createRequestHandler({
   buildReport: cachedReport,
   clearCache: () => clearReportCache(store),
+  track,
 });
+
+/** Optional feedback form opened when the extension is uninstalled. */
+const uninstallUrl = import.meta.env.VITE_UNINSTALL_FORM_URL ?? '';
+if (uninstallUrl.startsWith('https://')) {
+  void chrome.runtime.setUninstallURL(uninstallUrl);
+}
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log(`${EXTENSION_SHORT_NAME}: onInstalled (${reason})`);
+  if (reason === 'install') void track({ name: 'extension_installed' });
+  if (reason === 'update') void track({ name: 'extension_updated' });
 });
 
 chrome.runtime.onMessage.addListener(

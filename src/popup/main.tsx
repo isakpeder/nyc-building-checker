@@ -34,11 +34,22 @@ function render(settings: Settings): void {
         version={version}
         onChange={(next) => {
           render(next);
-          void saveSettings(next);
+          void saveSettings(next).then(() =>
+            sendRequest({
+              type: 'track',
+              event: {
+                name: 'settings_changed',
+                enabled: next.enabled,
+                shareUsage: next.shareUsage,
+              },
+            }),
+          );
         }}
         onClearCache={async () => {
           const response = await sendRequest({ type: 'clear-cache' });
-          return response.ok ? response.value.removed : null;
+          if (!response.ok) return null;
+          void sendRequest({ type: 'track', event: { name: 'cache_cleared' } });
+          return response.value.removed;
         }}
       />
     </StrictMode>,

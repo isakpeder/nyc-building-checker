@@ -44,13 +44,16 @@ export function splitCitation(description: string): {
 /**
  * Renders the details button and dialog.
  *
- * @param props - The report.
+ * @param props - The report, and a function called when the dialog opens.
  * @returns The details control, or `null` when there's nothing to list.
  */
 export function Details({
   report,
+  onOpen = () => undefined,
 }: {
   report: BuildingReport;
+  /** Called each time the dialog opens. */
+  onOpen?: () => void;
 }): ReactElement | null {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -79,6 +82,7 @@ export function Details({
         aria-haspopup="dialog"
         onClick={() => {
           dialog.current?.showModal();
+          onOpen();
         }}
       >
         Show details
