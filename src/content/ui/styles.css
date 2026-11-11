@@ -1,0 +1,71 @@
+/*
+ * Styles for the report panel. Injected into the panel's shadow root, so they
+ * don't reach the page and the page's styles don't reach the panel. Font and text
+ * color are inherited from the page so the panel matches StreetEasy.
+ */
+
+:host {
+  all: initial;
+  display: block;
+  margin: 16px 0;
+  font: inherit;
+  color: inherit;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.panel {
+  border: 1px solid rgb(0 0 0 / 15%);
+  background: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(0 0 0 / 10%);
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgb(0 0 0 / 60%);
+  font-size: 12px;
+}
+
+.body {
+  padding: 12px 16px;
+}
+
+.message {
+  margin: 0;
+  color: rgb(0 0 0 / 70%);
+}
+
+a {
+  color: #0041d9;
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 2px solid #0041d9;
+  outline-offset: 2px;
+}

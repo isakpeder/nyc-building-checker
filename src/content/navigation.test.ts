@@ -93,27 +93,29 @@ describe('waitForElement', () => {
 
 describe('mountPanel', () => {
   it('keeps one panel when the same listing is mounted twice', () => {
-    const first = mountPanel(document, 'a', 'Listing A');
-    const second = mountPanel(document, 'a', 'Listing A');
+    const first = mountPanel(document, 'a');
+    const second = mountPanel(document, 'a');
 
     expect(second).toBe(first);
     expect(document.querySelectorAll(`#${PANEL_ID}`)).toHaveLength(1);
   });
 
   it('replaces the panel for a different listing', () => {
-    mountPanel(document, 'a', 'Listing A');
-    mountPanel(document, 'b', 'Listing B');
+    mountPanel(document, 'a');
+    mountPanel(document, 'b');
 
     const panels = document.querySelectorAll(`#${PANEL_ID}`);
     expect(panels).toHaveLength(1);
-    expect(panels[0]?.textContent).toBe('Listing B');
+    expect((panels[0] as HTMLElement | undefined)?.dataset.listingKey).toBe(
+      'b',
+    );
   });
 
   it('places the panel after the address block', () => {
     document.body.innerHTML =
       '<div data-testid="homeAddress"></div><div id="next"></div>';
 
-    mountPanel(document, 'a', 'Listing A');
+    mountPanel(document, 'a');
 
     expect(
       document.querySelector('[data-testid="homeAddress"]')?.nextElementSibling
@@ -122,7 +124,7 @@ describe('mountPanel', () => {
   });
 
   it('removes the panel on unmount', () => {
-    mountPanel(document, 'a', 'Listing A');
+    mountPanel(document, 'a');
     unmountPanel(document);
     unmountPanel(document);
 

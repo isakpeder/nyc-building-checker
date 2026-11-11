@@ -11,7 +11,8 @@
     // Language and runtime
     "target": "ES2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "types": ["chrome"],
+    "types": ["chrome", "vite/client"],
+    "jsx": "react-jsx",
 
     // Module handling, delegated to the bundler
     "module": "preserve",
