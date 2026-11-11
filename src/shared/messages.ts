@@ -14,16 +14,27 @@ import { normalizeStreetAddress } from './address/street';
 import { normalizeUnit } from './address/unit';
 import { err, ok, type Result } from './result';
 
+/** The city's identifiers for a listing's building. */
+export interface BuildingIds {
+  /** Ten-digit borough-block-lot tax lot ID. */
+  readonly bbl: string;
+  /** Building ID, or `null` when the city has none for the lot. */
+  readonly bin: string | null;
+}
+
 /** The building report for a listing. Fields are added as data sources arrive. */
 export interface BuildingReport {
   readonly address: ListingAddress;
+  readonly building: BuildingIds;
 }
 
 /** Why a report could not be produced. */
 export type ReportError =
   /** The request failed validation. */
   | 'invalid-request'
-  /** The background worker could not be reached. */
+  /** No NYC building could be matched to the address with confidence. */
+  | 'building-not-found'
+  /** The background worker or a required service could not be reached. */
   | 'unavailable';
 
 /** Asks the background worker for a listing's building report. */

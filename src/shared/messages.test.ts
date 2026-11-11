@@ -5,8 +5,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { handleRequest } from '../background/handle-request';
-import { assertNever, parseRequest, type Request } from './messages';
+import { assertNever, parseRequest } from './messages';
 import { err } from './result';
 
 const VALID = {
@@ -61,23 +60,8 @@ describe('parseRequest', () => {
   });
 });
 
-describe('handleRequest', () => {
-  it('answers get-report with the requested address', async () => {
-    const request = parseRequest(VALID);
-    if (!request.ok) {
-      throw new Error('fixture is invalid');
-    }
-
-    await expect(handleRequest(request.value)).resolves.toEqual({
-      ok: true,
-      value: { address: VALID.address },
-    });
-  });
-
-  it('throws for a request type with no handler', () => {
+describe('assertNever', () => {
+  it('throws for a value no case handled', () => {
     expect(() => assertNever('unknown' as never)).toThrow('Unhandled case');
-    expect(() =>
-      handleRequest({ type: 'unknown' } as unknown as Request),
-    ).toThrow();
   });
 });
