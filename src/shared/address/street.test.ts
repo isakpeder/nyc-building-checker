@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 
 import { normalizeStreetAddress } from './street';
 
-const CASES: readonly (readonly [input: string, expected: string])[] = [
+const CASES: readonly (readonly [input: string, expected: string | null])[] = [
   // Case, whitespace and punctuation
   ['350 main street', '350 MAIN STREET'],
   ['  350   Main\tStreet  ', '350 MAIN STREET'],
@@ -96,9 +96,9 @@ const CASES: readonly (readonly [input: string, expected: string])[] = [
   ['1000 Avenue of the Americas', '1000 AVENUE OF THE AMERICAS'],
 
   // No text
-  ['', ''],
-  ['   ', ''],
-  [' ., ', ''],
+  ['', null],
+  ['   ', null],
+  [' ., ', null],
 ];
 
 describe('normalizeStreetAddress', () => {
@@ -106,11 +106,15 @@ describe('normalizeStreetAddress', () => {
     expect(normalizeStreetAddress(input)).toBe(expected);
   });
 
-  it.each(CASES)('is idempotent for %j', (input) => {
-    const once = normalizeStreetAddress(input);
+  it.each(CASES.filter(([, expected]) => expected !== null))(
+    'is idempotent for %j',
+    (input) => {
+      const once = normalizeStreetAddress(input);
 
-    expect(normalizeStreetAddress(once)).toBe(once);
-  });
+      expect(once).not.toBeNull();
+      expect(normalizeStreetAddress(once ?? '')).toBe(once);
+    },
+  );
 
   it.each([
     ['100 w 42nd st', '100 W. 42ND ST.'],
