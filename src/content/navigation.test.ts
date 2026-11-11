@@ -227,6 +227,33 @@ describe('createListingController', () => {
   });
 });
 
+describe('createListingController cancel', () => {
+  it('abandons the run in progress', async () => {
+    let finish: ((value: boolean) => void) | undefined;
+    const mount = vi.fn();
+    const controller = createListingController({
+      waitForListing: () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      extract: () =>
+        ok({
+          address: address('1 EXAMPLE STREET'),
+          source: 'json-ld' as const,
+        }),
+      mount,
+      unmount: vi.fn(),
+    });
+
+    const pending = controller.handle(LISTING_URL);
+    controller.cancel();
+    finish?.(true);
+    await pending;
+
+    expect(mount).not.toHaveBeenCalled();
+  });
+});
+
 describe('listingKey', () => {
   it('tells units in the same building apart', () => {
     expect(listingKey(address('1 MAIN STREET', '5A'))).not.toBe(

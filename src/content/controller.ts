@@ -29,6 +29,8 @@ export interface ListingController {
    * @returns Resolves when the update finishes or is abandoned.
    */
   readonly handle: (url: string) => Promise<void>;
+  /** Abandons the update in progress, if any. */
+  readonly cancel: () => void;
 }
 
 /**
@@ -53,6 +55,10 @@ export function createListingController(
   let current: AbortController | null = null;
 
   return {
+    cancel() {
+      current?.abort();
+      current = null;
+    },
     async handle(url) {
       // A newer URL cancels the work for the previous one.
       current?.abort();

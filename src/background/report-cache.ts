@@ -20,6 +20,7 @@ const INDEX_KEY = `report-index:v${String(CACHE_VERSION)}`;
 
 /** The storage operations the cache needs, matching chrome.storage.local. */
 export interface KeyValueStore {
+  readonly keys: () => Promise<readonly string[]>;
   readonly get: (key: string) => Promise<unknown>;
   readonly set: (key: string, value: unknown) => Promise<void>;
   readonly remove: (keys: readonly string[]) => Promise<void>;
@@ -144,4 +145,18 @@ export function createCachedReporter(
     inFlight.set(key, request);
     return request;
   };
+}
+
+/**
+ * Deletes every saved report and index, from any cache version.
+ *
+ * @param store - The storage to clear.
+ * @returns How many saved reports were deleted.
+ */
+export async function clearReportCache(store: KeyValueStore): Promise<number> {
+  const keys = (await store.keys()).filter(
+    (key) => key.startsWith('report:') || key.startsWith('report-index:'),
+  );
+  await store.remove(keys);
+  return keys.filter((key) => key.startsWith('report:')).length;
 }

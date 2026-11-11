@@ -3,12 +3,15 @@
  *
  * Runs on StreetEasy pages in an isolated world: it shares the page's DOM but not
  * its JavaScript variables. Reads from the current page only. Handles the first
- * page load and every in-page navigation after it.
+ * page load and every in-page navigation after it, and follows the on/off setting
+ * live.
  */
 
 import { createListingController } from './controller';
+import { DEFAULT_SETTINGS } from '../shared/settings';
+import { loadSettings, watchSettings } from '../shared/settings-store';
 import { extractListingAddress } from './extract';
-import { sendRequest } from './messaging';
+import { sendRequest } from '../shared/messaging';
 import { mountPanel, PANEL_ID, unmountPanel } from './panel-mount';
 import { attachPanel, type PanelRoot } from './ui/panel-root';
 import { watchUrl } from './url-watcher';
@@ -66,5 +69,29 @@ const controller = createListingController({
   },
 });
 
-void controller.handle(window.location.href);
-watchUrl((url) => void controller.handle(url));
+let enabled = DEFAULT_SETTINGS.enabled;
+
+/**
+ * Updates the page for a URL, or removes the panel when the extension is off.
+ *
+ * @param url - The page's current URL.
+ */
+function update(url: string): void {
+  if (enabled) {
+    void controller.handle(url);
+  } else {
+    controller.cancel();
+    releasePanel();
+    unmountPanel(document);
+  }
+}
+
+void loadSettings().then((settings) => {
+  enabled = settings.enabled;
+  update(window.location.href);
+});
+watchUrl(update);
+watchSettings((settings) => {
+  enabled = settings.enabled;
+  update(window.location.href);
+});
