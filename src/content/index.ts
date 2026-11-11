@@ -35,8 +35,8 @@ const controller = createListingController({
       // The panel may have been replaced by a newer listing while waiting.
       if (panel.isConnected && panel.dataset.listingKey === key) {
         panel.textContent = response.ok
-          ? `${label} (report received)`
-          : `${label} (report ${response.error})`;
+          ? `${label} (BBL ${response.value.building.bbl})`
+          : `${label} (${response.error})`;
       }
     });
   },

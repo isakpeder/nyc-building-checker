@@ -8,10 +8,15 @@
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { parseRequest } from '../shared/messages';
 import { err } from '../shared/result';
-import { handleRequest } from './handle-request';
+import { geocode } from './geocode';
+import { createRequestHandler } from './handle-request';
 
 // Listeners are registered at the top level so they exist as soon as the worker
 // starts, before Chrome delivers the event that woke it.
+const handleRequest = createRequestHandler({
+  geocode: (address) => geocode(address),
+});
+
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log(`${EXTENSION_SHORT_NAME}: onInstalled (${reason})`);
 });
