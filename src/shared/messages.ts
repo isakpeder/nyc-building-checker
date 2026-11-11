@@ -14,6 +14,7 @@ import type { ComplaintSummary } from '../background/datasets/complaints-311';
 import type { ConstructionSummary } from '../background/datasets/construction';
 import type { ViolationSummary } from '../background/datasets/hpd-violations';
 import type { LotInfo } from '../background/datasets/pluto';
+import type { Score } from '../background/scoring';
 import type { ListingAddress } from './address/listing-address';
 import { normalizeStreetAddress } from './address/street';
 import { normalizeUnit } from './address/unit';
@@ -46,6 +47,7 @@ export interface BuildingReport {
   readonly address: ListingAddress;
   readonly building: BuildingIds;
   readonly sections: ReportSections;
+  readonly score: Score;
   /** When the report was built, as an ISO timestamp. */
   readonly generatedAt: string;
 }

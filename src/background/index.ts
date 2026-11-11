@@ -16,11 +16,12 @@ import { fetchLotInfo } from './datasets/pluto';
 import { geocode } from './geocode';
 import { createRequestHandler } from './handle-request';
 import { buildReport } from './report';
+import { createCachedReporter } from './report-cache';
 
 // Listeners are registered at the top level so they exist as soon as the worker
 // starts, before Chrome delivers the event that woke it.
-const handleRequest = createRequestHandler({
-  buildReport: (address) =>
+const cachedReport = createCachedReporter(
+  (address) =>
     buildReport(address, {
       geocode: (a) => geocode(a),
       violations: (bbl) => fetchViolations(bbl),
@@ -29,7 +30,16 @@ const handleRequest = createRequestHandler({
       bedbugs: (bbl) => fetchBedbugs(bbl),
       lot: (bbl) => fetchLotInfo(bbl),
     }),
-});
+  {
+    store: {
+      get: async (key) => (await chrome.storage.local.get(key))[key],
+      set: (key, value) => chrome.storage.local.set({ [key]: value }),
+      remove: (keys) => chrome.storage.local.remove([...keys]),
+    },
+  },
+);
+
+const handleRequest = createRequestHandler({ buildReport: cachedReport });
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   console.log(`${EXTENSION_SHORT_NAME}: onInstalled (${reason})`);
