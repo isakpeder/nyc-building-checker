@@ -16,7 +16,6 @@ import type { ViolationSummary } from './datasets/hpd-violations';
 import type { LotInfo } from './datasets/pluto';
 import type { Building, GeocodeError } from './geocode';
 import type { HttpError } from './http/fetch-json';
-import { scoreReport } from './scoring';
 
 /** A data source: returns its data or an HTTP error. */
 type Source<A, T> = (input: A) => Promise<Result<T, HttpError>>;
@@ -118,7 +117,6 @@ export async function buildReport(
     address,
     building: { bbl, bin },
     sections,
-    score: scoreReport(sections, now),
     builtAt: now.toISOString(),
   });
 }

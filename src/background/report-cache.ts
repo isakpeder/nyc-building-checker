@@ -13,7 +13,7 @@ import type { BuildingReport, ReportError } from '../shared/messages';
 import { ok, type Result } from '../shared/result';
 
 /** Bump when the stored report format changes. */
-export const CACHE_VERSION = 4;
+export const CACHE_VERSION = 5;
 
 const PREFIX = `report:v${String(CACHE_VERSION)}:`;
 const INDEX_KEY = `report-index:v${String(CACHE_VERSION)}`;
