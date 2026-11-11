@@ -15,6 +15,7 @@ const VALID = {
     unit: '3M',
     borough: 'QUEENS',
     postalCode: '11103',
+    region: 'NY',
   },
 };
 

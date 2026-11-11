@@ -65,6 +65,7 @@ describe('addressFromHeading', () => {
         unit: '3M',
         borough: null,
         postalCode: null,
+        region: null,
       },
     });
   });

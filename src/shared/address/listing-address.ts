@@ -17,6 +17,8 @@ export interface ListingAddress {
   readonly borough: Borough | null;
   /** Five-digit ZIP code, or `null` when absent or malformed. */
   readonly postalCode: string | null;
+  /** Two-letter state code, or `null` when absent or malformed. */
+  readonly region: string | null;
 }
 
 /** The address parts as a page provides them. */
@@ -25,6 +27,7 @@ export interface RawAddressParts {
   readonly streetLine: string;
   readonly locality?: string | undefined;
   readonly postalCode?: string | undefined;
+  readonly region?: string | undefined;
 }
 
 /**
@@ -87,11 +90,13 @@ export function buildListingAddress(
   }
 
   const postalCode = parts.postalCode?.trim() ?? '';
+  const region = parts.region?.trim().toUpperCase() ?? '';
 
   return {
     street: normalizedStreet,
     unit: unit === null ? null : normalizeUnit(unit),
     borough: parts.locality === undefined ? null : parseBorough(parts.locality),
     postalCode: ZIP_CODE.test(postalCode) ? postalCode : null,
+    region: /^[A-Z]{2}$/.test(region) ? region : null,
   };
 }

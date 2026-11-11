@@ -10,6 +10,7 @@ import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { createListingController } from './controller';
 import { extractListingAddress } from './extract';
 import { sendRequest } from './messaging';
+import { summarizeResponse } from './report-summary';
 import { mountPanel, unmountPanel } from './panel-mount';
 import { watchUrl } from './url-watcher';
 import { waitForElement } from './wait-for-element';
@@ -34,9 +35,7 @@ const controller = createListingController({
     void sendRequest({ type: 'get-report', address }).then((response) => {
       // The panel may have been replaced by a newer listing while waiting.
       if (panel.isConnected && panel.dataset.listingKey === key) {
-        panel.textContent = response.ok
-          ? `${label} (BBL ${response.value.building.bbl})`
-          : `${label} (${response.error})`;
+        panel.textContent = `${label}: ${summarizeResponse(response)}`;
       }
     });
   },

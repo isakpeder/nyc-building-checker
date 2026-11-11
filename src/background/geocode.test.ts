@@ -76,6 +76,7 @@ function address(
     unit: '5A' as ListingAddress['unit'],
     borough,
     postalCode: null,
+    region: null,
   };
 }
 

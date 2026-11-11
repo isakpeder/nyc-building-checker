@@ -9,17 +9,18 @@
 import type { ListingAddress } from '../shared/address/listing-address';
 import {
   assertNever,
+  type BuildingReport,
+  type ReportError,
   type Request,
   type ResponseFor,
 } from '../shared/messages';
-import { err, ok, type Result } from '../shared/result';
-import type { Building, GeocodeError } from './geocode';
+import type { Result } from '../shared/result';
 
 /** The services the request handler uses. */
 export interface HandlerDeps {
-  readonly geocode: (
+  readonly buildReport: (
     address: ListingAddress,
-  ) => Promise<Result<Building, GeocodeError>>;
+  ) => Promise<Result<BuildingReport, ReportError>>;
 }
 
 /**
@@ -36,18 +37,8 @@ export function createRequestHandler(
       // With one request type, the compiler sees this case as always matching. The
       // switch stays so a new type without a case fails the typecheck.
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      case 'get-report': {
-        const building = await deps.geocode(request.address);
-        if (!building.ok) {
-          return err(
-            building.error === 'unavailable'
-              ? 'unavailable'
-              : 'building-not-found',
-          );
-        }
-        const { bbl, bin } = building.value;
-        return ok({ address: request.address, building: { bbl, bin } });
-      }
+      case 'get-report':
+        return deps.buildReport(request.address);
       default:
         return assertNever(request.type);
     }

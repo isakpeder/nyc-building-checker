@@ -28,6 +28,7 @@ const PostalAddressSchema = z.object({
   streetAddress: z.string(),
   addressLocality: z.string().optional(),
   postalCode: z.string().optional(),
+  addressRegion: z.string().optional(),
 });
 
 const ItemPageSchema = z.object({
@@ -68,6 +69,7 @@ export function addressFromJsonLd(
         streetLine: address.streetAddress,
         locality: address.addressLocality,
         postalCode: address.postalCode,
+        region: address.addressRegion,
       }),
     )
     .filter((address) => address !== null);
