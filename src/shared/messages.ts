@@ -11,7 +11,7 @@ import { z } from 'zod';
 import { parseBorough } from './address/borough';
 import type { BedbugStatus } from '../background/datasets/bedbugs';
 import type { ComplaintSummary } from '../background/datasets/complaints-311';
-import type { ConstructionSummary } from '../background/datasets/construction';
+import type { StopWorkSummary } from '../background/datasets/stop-work';
 import type { ViolationSummary } from '../background/datasets/hpd-violations';
 import type { LotInfo } from '../background/datasets/pluto';
 import type { Score } from '../background/scoring';
@@ -37,7 +37,7 @@ export type Section<T> =
 export interface ReportSections {
   readonly violations: Section<ViolationSummary>;
   readonly complaints: Section<ComplaintSummary>;
-  readonly construction: Section<ConstructionSummary>;
+  readonly stopWork: Section<StopWorkSummary>;
   readonly bedbugs: Section<BedbugStatus>;
   readonly lot: Section<LotInfo | null>;
 }

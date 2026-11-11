@@ -57,10 +57,9 @@ function sections(
     violations?: Violation[];
     incidents?: Incident[];
     units?: number | null;
-    permits?: number;
     stopWork?: number;
     bedbugs?: ReportSections['bedbugs'];
-    construction?: ReportSections['construction'];
+    stopWorkSection?: ReportSections['stopWork'];
   } = {},
 ): ReportSections {
   const empty = { open: 0, closed: 0 };
@@ -81,18 +80,14 @@ function sections(
         truncated: false,
       },
     },
-    construction: overrides.construction ?? {
+    stopWork: overrides.stopWorkSection ?? {
       status: 'ok',
       data: {
-        activePermits: Array.from(
-          { length: overrides.permits ?? 0 },
-          () => ({}) as never,
-        ),
-        stopWorkOrders: Array.from(
+        active: Array.from(
           { length: overrides.stopWork ?? 0 },
           () => ({}) as never,
         ),
-        rescindedStopWorkOrders: 0,
+        rescinded: 0,
         truncated: false,
       },
     },
@@ -167,16 +162,15 @@ describe('scoreReport', () => {
           incident('noise', '2025-11-11'),
           incident('noise', '2025-11-11'),
         ],
-        permits: 1,
       }),
       NOW,
     );
 
     expect(score.kind).toBe('graded');
     if (score.kind !== 'graded') return;
-    expect(score.rate).toBeCloseTo(5.4715, 3);
+    expect(score.rate).toBeCloseTo(5.2493, 3);
     expect(score.grade).toBe('C');
-    expect(score.score).toBe(53);
+    expect(score.score).toBe(55);
     expect(
       score.contributions.map((c) => [c.key, Number(c.points.toFixed(4))]),
     ).toEqual([
@@ -184,7 +178,6 @@ describe('scoreReport', () => {
       ['hpd-B-open', 8],
       ['311-heat', 4.2467],
       ['311-noise', 1],
-      ['dob-permits', 1],
       ['hpd-A-closed', 0.375],
     ]);
   });
@@ -267,7 +260,7 @@ describe('scoreReport', () => {
   it('still grades without optional sections and lists them', () => {
     const score = scoreReport(
       sections({
-        construction: { status: 'unavailable' },
+        stopWorkSection: { status: 'unavailable' },
         bedbugs: { status: 'unavailable' },
       }),
       NOW,
@@ -275,7 +268,7 @@ describe('scoreReport', () => {
 
     expect(score).toMatchObject({
       kind: 'graded',
-      missing: ['construction', 'bedbugs'],
+      missing: ['stopWork', 'bedbugs'],
     });
   });
 

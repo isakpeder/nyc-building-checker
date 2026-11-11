@@ -56,10 +56,9 @@ export function summarizeResponse(
     parts.push('311 unavailable');
   }
 
-  if (sections.construction.status === 'ok') {
-    const { activePermits, stopWorkOrders } = sections.construction.data;
+  if (sections.stopWork.status === 'ok') {
     parts.push(
-      `Active permits: ${String(activePermits.length)}, stop-work orders: ${String(stopWorkOrders.length)}`,
+      `Stop-work orders: ${String(sections.stopWork.data.active.length)}`,
     );
   } else {
     parts.push('DOB unavailable');

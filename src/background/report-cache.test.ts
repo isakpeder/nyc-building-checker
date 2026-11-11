@@ -51,7 +51,7 @@ function report(for_: ListingAddress, complete = true): BuildingReport {
     sections: {
       violations: okSection as never,
       complaints: complete ? (okSection as never) : { status: 'unavailable' },
-      construction: okSection as never,
+      stopWork: okSection as never,
       bedbugs: okSection as never,
       lot: okSection,
     },
@@ -217,7 +217,7 @@ describe('createCachedReporter', () => {
 
   it('uses a versioned key without the unit', () => {
     expect(cacheKey(address('1 MAIN STREET', '5A'))).toBe(
-      'report:v2:QUEENS|1 MAIN STREET',
+      'report:v3:QUEENS|1 MAIN STREET',
     );
   });
 });

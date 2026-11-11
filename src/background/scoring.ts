@@ -46,7 +46,7 @@ export type Score =
       /** Largest first. Zero-point lines are left out. */
       readonly contributions: readonly Contribution[];
       /** Optional sections that didn't load and so weren't counted. */
-      readonly missing: readonly ('construction' | 'bedbugs')[];
+      readonly missing: readonly ('stopWork' | 'bedbugs')[];
     }
   | { readonly kind: 'ungraded'; readonly reason: UngradedReason };
 
@@ -68,7 +68,6 @@ export const WEIGHTS = {
   } satisfies Record<ComplaintCategory, number>,
   infestedUnit: 5,
   noBedbugFiling: 5,
-  activePermit: 1,
   stopWorkOrder: 15,
 } as const;
 
@@ -123,7 +122,7 @@ export function gradeFor(rate: number): Grade {
  * @returns The score, or why the report can't be graded.
  */
 export function scoreReport(sections: ReportSections, now: Date): Score {
-  const { violations, complaints, construction, bedbugs, lot } = sections;
+  const { violations, complaints, stopWork, bedbugs, lot } = sections;
   if (
     violations.status !== 'ok' ||
     complaints.status !== 'ok' ||
@@ -191,23 +190,17 @@ export function scoreReport(sections: ReportSections, now: Date): Score {
     );
   }
 
-  const missing: ('construction' | 'bedbugs')[] = [];
-  if (construction.status === 'ok') {
-    const { activePermits, stopWorkOrders } = construction.data;
-    add(
-      'dob-permits',
-      'Active construction permits',
-      activePermits.length,
-      activePermits.length * WEIGHTS.activePermit,
-    );
+  const missing: ('stopWork' | 'bedbugs')[] = [];
+  if (stopWork.status === 'ok') {
+    const { active } = stopWork.data;
     add(
       'dob-stop-work',
       'Stop-work orders in force',
-      stopWorkOrders.length,
-      stopWorkOrders.length * WEIGHTS.stopWorkOrder,
+      active.length,
+      active.length * WEIGHTS.stopWorkOrder,
     );
   } else {
-    missing.push('construction');
+    missing.push('stopWork');
   }
 
   if (bedbugs.status === 'ok') {

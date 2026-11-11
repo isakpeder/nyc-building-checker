@@ -11,7 +11,7 @@ import type { BuildingReport, ReportError, Section } from '../shared/messages';
 import { err, ok, type Result } from '../shared/result';
 import type { BedbugStatus } from './datasets/bedbugs';
 import type { ComplaintSummary } from './datasets/complaints-311';
-import type { ConstructionSummary } from './datasets/construction';
+import type { StopWorkSummary } from './datasets/stop-work';
 import type { ViolationSummary } from './datasets/hpd-violations';
 import type { LotInfo } from './datasets/pluto';
 import type { Building, GeocodeError } from './geocode';
@@ -28,7 +28,7 @@ export interface ReportDeps {
   ) => Promise<Result<Building, GeocodeError>>;
   readonly violations: Source<string, ViolationSummary>;
   readonly complaints: Source<string, ComplaintSummary>;
-  readonly construction: Source<string, ConstructionSummary>;
+  readonly stopWork: Source<string, StopWorkSummary>;
   readonly bedbugs: Source<string, BedbugStatus>;
   readonly lot: Source<string, LotInfo | null>;
   readonly now?: () => Date;
@@ -93,14 +93,14 @@ export async function buildReport(
   }
   const { bbl, bin } = building.value;
 
-  const [violations, complaints, construction, bedbugs, lot] =
+  const [violations, complaints, stopWork, bedbugs, lot] =
     await Promise.allSettled([
       deps.violations(bbl),
       deps.complaints(bbl),
       // DOB data is keyed by BIN, which some lots don't have.
       bin === null
         ? Promise.resolve(err<HttpError>({ kind: 'invalid-response' }))
-        : deps.construction(bin),
+        : deps.stopWork(bin),
       deps.bedbugs(bbl),
       deps.lot(bbl),
     ]);
@@ -108,7 +108,7 @@ export async function buildReport(
   const sections = {
     violations: toSection(violations),
     complaints: toSection(complaints),
-    construction: toSection(construction),
+    stopWork: toSection(stopWork),
     bedbugs: toSection(bedbugs),
     lot: toSection(lot),
   };
