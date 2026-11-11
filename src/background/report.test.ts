@@ -48,14 +48,9 @@ function deps(overrides: Partial<ReportDeps> = {}) {
       .mockResolvedValue(
         ok({ byCategory: {}, incidents: [], truncated: false }),
       ),
-    construction: vi.fn().mockResolvedValue(
-      ok({
-        activePermits: [],
-        stopWorkOrders: [],
-        rescindedStopWorkOrders: 0,
-        truncated: false,
-      }),
-    ),
+    stopWork: vi
+      .fn()
+      .mockResolvedValue(ok({ active: [], rescinded: 0, truncated: false })),
     bedbugs: vi.fn().mockResolvedValue(ok({ kind: 'no-filing' })),
     lot: vi.fn().mockResolvedValue(ok(null)),
     now: () => new Date('2026-11-11T06:00:00Z'),
@@ -77,11 +72,9 @@ describe('buildReport', () => {
       status: 'ok',
       data: VIOLATIONS,
     });
-    expect(result.ok && result.value.generatedAt).toBe(
-      '2026-11-11T06:00:00.000Z',
-    );
+    expect(result.ok && result.value.builtAt).toBe('2026-11-11T06:00:00.000Z');
     expect(d.violations).toHaveBeenCalledWith('4001230001');
-    expect(d.construction).toHaveBeenCalledWith('4123456');
+    expect(d.stopWork).toHaveBeenCalledWith('4123456');
   });
 
   it('marks only the failed section unavailable', async () => {
@@ -124,8 +117,8 @@ describe('buildReport', () => {
 
     const result = await buildReport(ADDRESS, d);
 
-    expect(d.construction).not.toHaveBeenCalled();
-    expect(result.ok && result.value.sections.construction).toEqual({
+    expect(d.stopWork).not.toHaveBeenCalled();
+    expect(result.ok && result.value.sections.stopWork).toEqual({
       status: 'unavailable',
     });
   });

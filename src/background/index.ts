@@ -10,7 +10,7 @@ import { parseRequest } from '../shared/messages';
 import { err } from '../shared/result';
 import { fetchBedbugs } from './datasets/bedbugs';
 import { fetchComplaints } from './datasets/complaints-311';
-import { fetchConstruction } from './datasets/construction';
+import { fetchStopWork } from './datasets/stop-work';
 import { fetchViolations } from './datasets/hpd-violations';
 import { fetchLotInfo } from './datasets/pluto';
 import { geocode } from './geocode';
@@ -26,7 +26,7 @@ const cachedReport = createCachedReporter(
       geocode: (a) => geocode(a),
       violations: (bbl) => fetchViolations(bbl),
       complaints: (bbl) => fetchComplaints(bbl),
-      construction: (bin) => fetchConstruction(bin),
+      stopWork: (bin) => fetchStopWork(bin),
       bedbugs: (bbl) => fetchBedbugs(bbl),
       lot: (bbl) => fetchLotInfo(bbl),
     }),

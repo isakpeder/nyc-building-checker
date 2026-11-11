@@ -11,6 +11,7 @@ import type { Violation } from './datasets/hpd-violations';
 import { decay, gradeFor, scoreReport } from './scoring';
 
 const NOW = new Date('2026-11-11T00:00:00Z');
+const NO_FILING = { status: 'ok', data: { kind: 'no-filing' } } as const;
 
 /**
  * Builds a violation.
@@ -57,10 +58,9 @@ function sections(
     violations?: Violation[];
     incidents?: Incident[];
     units?: number | null;
-    permits?: number;
     stopWork?: number;
     bedbugs?: ReportSections['bedbugs'];
-    construction?: ReportSections['construction'];
+    stopWorkSection?: ReportSections['stopWork'];
   } = {},
 ): ReportSections {
   const empty = { open: 0, closed: 0 };
@@ -81,18 +81,14 @@ function sections(
         truncated: false,
       },
     },
-    construction: overrides.construction ?? {
+    stopWork: overrides.stopWorkSection ?? {
       status: 'ok',
       data: {
-        activePermits: Array.from(
-          { length: overrides.permits ?? 0 },
-          () => ({}) as never,
-        ),
-        stopWorkOrders: Array.from(
+        active: Array.from(
           { length: overrides.stopWork ?? 0 },
           () => ({}) as never,
         ),
-        rescindedStopWorkOrders: 0,
+        rescinded: 0,
         truncated: false,
       },
     },
@@ -167,25 +163,23 @@ describe('scoreReport', () => {
           incident('noise', '2025-11-11'),
           incident('noise', '2025-11-11'),
         ],
-        permits: 1,
       }),
       NOW,
     );
 
     expect(score.kind).toBe('graded');
     if (score.kind !== 'graded') return;
-    expect(score.rate).toBeCloseTo(5.4715, 3);
-    expect(score.grade).toBe('C');
-    expect(score.score).toBe(53);
+    expect(score.rate).toBeCloseTo(3.8036, 3);
+    expect(score.grade).toBe('B');
+    expect(score.score).toBe(64);
     expect(
       score.contributions.map((c) => [c.key, Number(c.points.toFixed(4))]),
     ).toEqual([
       ['hpd-C-open', 10],
       ['hpd-B-open', 8],
       ['311-heat', 4.2467],
-      ['311-noise', 1],
-      ['dob-permits', 1],
       ['hpd-A-closed', 0.375],
+      ['311-noise', 0.2],
     ]);
   });
 
@@ -237,7 +231,7 @@ describe('scoreReport', () => {
     const small = scoreReport(sections({ ...problems, units: 4 }), NOW);
     const large = scoreReport(sections({ ...problems, units: 400 }), NOW);
 
-    expect(small.kind === 'graded' && small.grade).toBe('F');
+    expect(small.kind === 'graded' && small.grade).toBe('D');
     expect(large.kind === 'graded' && large.grade).toBe('A');
   });
 
@@ -247,7 +241,65 @@ describe('scoreReport', () => {
       NOW,
     );
 
+    expect(score.kind === 'graded' && score.grade).toBe('A');
+  });
+
+  it('does not fail a one-unit house for seven recent rat sightings', () => {
+    const sightings = [
+      '2026-09-08',
+      '2026-08-29',
+      '2026-08-27',
+      '2026-08-21',
+      '2026-08-14',
+      '2026-08-12',
+      '2026-08-11',
+    ];
+    const score = scoreReport(
+      sections({
+        units: 1,
+        incidents: sightings.map((date) => incident('rodents', date)),
+      }),
+      NOW,
+    );
+
     expect(score.kind === 'graded' && score.grade).toBe('B');
+  });
+
+  it('weighs indoor pests above outdoor rat sightings', () => {
+    const pests = scoreReport(
+      sections({ incidents: [incident('pests', '2026-11-01')] }),
+      NOW,
+    );
+    const rats = scoreReport(
+      sections({ incidents: [incident('rodents', '2026-11-01')] }),
+      NOW,
+    );
+
+    expect(pests.kind === 'graded' && rats.kind === 'graded').toBe(true);
+    if (pests.kind !== 'graded' || rats.kind !== 'graded') return;
+    expect(pests.rate).toBeGreaterThan(rats.rate * 2);
+  });
+
+  it('uses the bedbug filing unit count when PLUTO lists 0 units', () => {
+    const score = scoreReport(
+      sections({
+        units: 0,
+        bedbugs: {
+          status: 'ok',
+          data: {
+            kind: 'reported',
+            infestedUnits: 0,
+            eradicatedUnits: 0,
+            reinfestedUnits: 0,
+            dwellingUnits: 120,
+            filedOn: '2026-02-01',
+          },
+        },
+      }),
+      NOW,
+    );
+
+    expect(score.kind).toBe('graded');
   });
 
   it('counts a missing bedbug filing and stop-work orders', () => {
@@ -267,7 +319,7 @@ describe('scoreReport', () => {
   it('still grades without optional sections and lists them', () => {
     const score = scoreReport(
       sections({
-        construction: { status: 'unavailable' },
+        stopWorkSection: { status: 'unavailable' },
         bedbugs: { status: 'unavailable' },
       }),
       NOW,
@@ -275,13 +327,21 @@ describe('scoreReport', () => {
 
     expect(score).toMatchObject({
       kind: 'graded',
-      missing: ['construction', 'bedbugs'],
+      missing: ['stopWork', 'bedbugs'],
     });
   });
 
   it.each([
-    ['0 residential units', { units: 0 }, 'no-residential-units'],
-    ['an unknown unit count', { units: null }, 'unknown-size'],
+    [
+      '0 residential units',
+      { units: 0, bedbugs: NO_FILING },
+      'no-residential-units',
+    ],
+    [
+      'an unknown unit count',
+      { units: null, bedbugs: NO_FILING },
+      'unknown-size',
+    ],
   ] as const)('does not grade a lot with %s', (_label, overrides, reason) => {
     expect(scoreReport(sections(overrides), NOW)).toEqual({
       kind: 'ungraded',

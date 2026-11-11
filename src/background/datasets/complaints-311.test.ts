@@ -35,7 +35,7 @@ function row(key: string, overrides: Partial<ComplaintRow> = {}): ComplaintRow {
 describe('categorize', () => {
   it.each([
     ['HPD', 'HEAT/HOT WATER', 'APARTMENT ONLY', 'heat'],
-    ['DOHMH', 'Rodent', 'Rat Sighting', 'pests'],
+    ['DOHMH', 'Rodent', 'Rat Sighting', 'rodents'],
     ['HPD', 'UNSANITARY CONDITION', 'PESTS', 'pests'],
     ['HPD', 'UNSANITARY CONDITION', 'MICE', 'pests'],
     ['HPD', 'UNSANITARY CONDITION', 'BED BUGS', 'pests'],

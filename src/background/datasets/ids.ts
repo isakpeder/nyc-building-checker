@@ -9,10 +9,6 @@ export const DATASETS = {
   hpdViolations: 'wvxf-dwi5',
   /** 311 Service Requests from 2020 to Present. Keyed by BBL. */
   serviceRequests311: 'erm2-nwe9',
-  /** DOB Permit Issuance, the legacy BIS system. Keyed by BIN. */
-  dobPermitsLegacy: 'ipu4-2q9a',
-  /** DOB NOW: Build – Approved Permits. Keyed by BIN. */
-  dobPermitsNow: 'rbx6-tga4',
   /** DOB Complaints Received, the source of stop-work orders. Keyed by BIN. */
   dobComplaints: 'eabe-havv',
   /** Bedbug Reporting. Keyed by BBL. */

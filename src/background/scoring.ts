@@ -46,7 +46,7 @@ export type Score =
       /** Largest first. Zero-point lines are left out. */
       readonly contributions: readonly Contribution[];
       /** Optional sections that didn't load and so weren't counted. */
-      readonly missing: readonly ('construction' | 'bedbugs')[];
+      readonly missing: readonly ('stopWork' | 'bedbugs')[];
     }
   | { readonly kind: 'ungraded'; readonly reason: UngradedReason };
 
@@ -61,22 +61,33 @@ export const WEIGHTS = {
   incident: {
     heat: 3,
     pests: 3,
+    rodents: 1,
     plumbing: 2,
     building: 1.5,
-    noise: 0.5,
-    other: 0.25,
+    noise: 0.1,
+    other: 0.05,
   } satisfies Record<ComplaintCategory, number>,
   infestedUnit: 5,
   noBedbugFiling: 5,
-  activePermit: 1,
   stopWorkOrder: 15,
 } as const;
+
+/** Explanation labels for 311 categories. */
+const INCIDENT_LABELS: Readonly<Record<ComplaintCategory, string>> = {
+  heat: '311 heat and hot water incidents',
+  pests: '311 pest incidents',
+  rodents: '311 rat sightings',
+  plumbing: '311 plumbing and leak incidents',
+  building: '311 building condition incidents',
+  noise: '311 noise incidents',
+  other: 'Other 311 incidents',
+};
 
 /** Days for a record's weight to halve. */
 export const HALF_LIFE_DAYS = 365;
 
 /** Units added to every building's count before dividing. */
-export const UNIT_PRIOR = 5;
+export const UNIT_PRIOR = 20;
 
 /** Upper rate limits of each grade, per 10 units. F is anything above D. */
 export const GRADE_BANDS: readonly (readonly [Grade, number])[] = [
@@ -123,7 +134,7 @@ export function gradeFor(rate: number): Grade {
  * @returns The score, or why the report can't be graded.
  */
 export function scoreReport(sections: ReportSections, now: Date): Score {
-  const { violations, complaints, construction, bedbugs, lot } = sections;
+  const { violations, complaints, stopWork, bedbugs, lot } = sections;
   if (
     violations.status !== 'ok' ||
     complaints.status !== 'ok' ||
@@ -131,7 +142,16 @@ export function scoreReport(sections: ReportSections, now: Date): Score {
   ) {
     return { kind: 'ungraded', reason: 'incomplete' };
   }
-  const units = lot.data?.residentialUnits ?? null;
+  // PLUTO can list 0 units for a condo lot. The bedbug filing's unit count fills in.
+  const plutoUnits = lot.data?.residentialUnits ?? null;
+  const filedUnits =
+    bedbugs.status === 'ok' && bedbugs.data.kind === 'reported'
+      ? bedbugs.data.dwellingUnits
+      : 0;
+  const units =
+    (plutoUnits === null || plutoUnits === 0) && filedUnits > 0
+      ? filedUnits
+      : plutoUnits;
   if (units === null) {
     return { kind: 'ungraded', reason: 'unknown-size' };
   }
@@ -185,29 +205,23 @@ export function scoreReport(sections: ReportSections, now: Date): Score {
     );
     add(
       `311-${category}`,
-      `311 ${category} incidents`,
+      INCIDENT_LABELS[category],
       incidents.length,
       incidents.reduce((sum, i) => sum + weight * decay(i.date, now), 0),
     );
   }
 
-  const missing: ('construction' | 'bedbugs')[] = [];
-  if (construction.status === 'ok') {
-    const { activePermits, stopWorkOrders } = construction.data;
-    add(
-      'dob-permits',
-      'Active construction permits',
-      activePermits.length,
-      activePermits.length * WEIGHTS.activePermit,
-    );
+  const missing: ('stopWork' | 'bedbugs')[] = [];
+  if (stopWork.status === 'ok') {
+    const { active } = stopWork.data;
     add(
       'dob-stop-work',
       'Stop-work orders in force',
-      stopWorkOrders.length,
-      stopWorkOrders.length * WEIGHTS.stopWorkOrder,
+      active.length,
+      active.length * WEIGHTS.stopWorkOrder,
     );
   } else {
-    missing.push('construction');
+    missing.push('stopWork');
   }
 
   if (bedbugs.status === 'ok') {
