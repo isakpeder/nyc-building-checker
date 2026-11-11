@@ -16,6 +16,9 @@
  * Street aliases such as Avenue of the Americas and 6 Avenue are not merged.
  */
 
+/** A street address in canonical form. Only {@link normalizeStreetAddress} creates one. */
+export type StreetAddress = string & { readonly __brand: 'StreetAddress' };
+
 /**
  * Street types and their abbreviations, from USPS Publication 28 Appendix C1.
  */
@@ -93,7 +96,7 @@ const NUMERIC_ORDINAL = /^(\d+)(?:ST|ND|RD|TH)$/;
  * Applying this to its own output returns the same string.
  *
  * @param address - A street line with no unit, borough or ZIP code.
- * @returns The canonical address, or an empty string if `address` has no text.
+ * @returns The canonical address, or `null` if `address` has no text.
  *
  * @example
  * normalizeStreetAddress('350 W. 42nd St.'); // '350 WEST 42 STREET'
@@ -101,19 +104,19 @@ const NUMERIC_ORDINAL = /^(\d+)(?:ST|ND|RD|TH)$/;
  * normalizeStreetAddress('10 St. Mark\'s Pl'); // '10 SAINT MARKS PLACE'
  * normalizeStreetAddress('100 Avenue E'); // '100 AVENUE E'
  */
-export function normalizeStreetAddress(address: string): string {
+export function normalizeStreetAddress(address: string): StreetAddress | null {
   const tokens = tokenize(address);
   const [first] = tokens;
 
   if (first === undefined) {
-    return '';
+    return null;
   }
 
-  if (HOUSE_NUMBER.test(first)) {
-    return [first, ...normalizeStreetName(tokens.slice(1))].join(' ');
-  }
+  const words = HOUSE_NUMBER.test(first)
+    ? [first, ...normalizeStreetName(tokens.slice(1))]
+    : normalizeStreetName(tokens);
 
-  return normalizeStreetName(tokens).join(' ');
+  return words.join(' ') as StreetAddress;
 }
 
 /**
