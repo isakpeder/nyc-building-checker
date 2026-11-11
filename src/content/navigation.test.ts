@@ -30,6 +30,7 @@ function address(street: string, unit: string | null = null): ListingAddress {
     unit: unit as ListingAddress['unit'],
     borough: 'QUEENS',
     postalCode: null,
+    region: null,
   };
 }
 

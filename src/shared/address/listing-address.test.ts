@@ -40,6 +40,7 @@ describe('buildListingAddress', () => {
       unit: '3M',
       borough: 'QUEENS',
       postalCode: '11103',
+      region: null,
     });
   });
 
@@ -51,6 +52,7 @@ describe('buildListingAddress', () => {
       unit: null,
       borough: 'MANHATTAN',
       postalCode: null,
+      region: null,
     });
   });
 
@@ -79,6 +81,18 @@ describe('buildListingAddress', () => {
       buildListingAddress({ streetLine: '10 Main St', postalCode: ' 11103 ' })
         ?.postalCode,
     ).toBe('11103');
+  });
+
+  it.each([
+    ['NY', 'NY'],
+    [' nj ', 'NJ'],
+    ['New Jersey', null],
+    ['N', null],
+    [undefined, null],
+  ])('reads the region %j as %j', (region, expected) => {
+    expect(
+      buildListingAddress({ streetLine: '10 Main St', region })?.region,
+    ).toBe(expected);
   });
 
   it('returns null when the street line has no street', () => {

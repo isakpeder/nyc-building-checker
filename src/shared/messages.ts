@@ -9,6 +9,11 @@
 import { z } from 'zod';
 
 import { parseBorough } from './address/borough';
+import type { BedbugStatus } from '../background/datasets/bedbugs';
+import type { ComplaintSummary } from '../background/datasets/complaints-311';
+import type { ConstructionSummary } from '../background/datasets/construction';
+import type { ViolationSummary } from '../background/datasets/hpd-violations';
+import type { LotInfo } from '../background/datasets/pluto';
 import type { ListingAddress } from './address/listing-address';
 import { normalizeStreetAddress } from './address/street';
 import { normalizeUnit } from './address/unit';
@@ -22,16 +27,35 @@ export interface BuildingIds {
   readonly bin: string | null;
 }
 
-/** The building report for a listing. Fields are added as data sources arrive. */
+/** One section of a report: its data, or a note that its source failed. */
+export type Section<T> =
+  | { readonly status: 'ok'; readonly data: T }
+  | { readonly status: 'unavailable' };
+
+/** The data sections of a building report. */
+export interface ReportSections {
+  readonly violations: Section<ViolationSummary>;
+  readonly complaints: Section<ComplaintSummary>;
+  readonly construction: Section<ConstructionSummary>;
+  readonly bedbugs: Section<BedbugStatus>;
+  readonly lot: Section<LotInfo | null>;
+}
+
+/** The building report for a listing. */
 export interface BuildingReport {
   readonly address: ListingAddress;
   readonly building: BuildingIds;
+  readonly sections: ReportSections;
+  /** When the report was built, as an ISO timestamp. */
+  readonly generatedAt: string;
 }
 
 /** Why a report could not be produced. */
 export type ReportError =
   /** The request failed validation. */
   | 'invalid-request'
+  /** The listing is outside New York City, so no city data applies. */
+  | 'outside-nyc'
   /** No NYC building could be matched to the address with confidence. */
   | 'building-not-found'
   /** The background worker or a required service could not be reached. */
@@ -61,6 +85,10 @@ const ListingAddressSchema = z.object({
   postalCode: z
     .string()
     .regex(/^\d{5}$/)
+    .nullable(),
+  region: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
     .nullable(),
 });
 
@@ -98,6 +126,7 @@ export function parseRequest(
       unit: address.unit === null ? null : normalizeUnit(address.unit),
       borough: address.borough === null ? null : parseBorough(address.borough),
       postalCode: address.postalCode,
+      region: address.region,
     },
   });
 }

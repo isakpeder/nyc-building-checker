@@ -1,11 +1,11 @@
 /**
- * Tests for the request handler, with the geocoder replaced by a stub.
+ * Tests for the request handler, with the report builder replaced by a stub.
  */
 
 import { describe, expect, it, vi } from 'vitest';
 
 import { parseRequest, type Request } from '../shared/messages';
-import { err, ok } from '../shared/result';
+import { err } from '../shared/result';
 import { createRequestHandler } from './handle-request';
 
 const REQUEST = parseRequest({
@@ -15,6 +15,7 @@ const REQUEST = parseRequest({
     unit: '3M',
     borough: 'QUEENS',
     postalCode: '11103',
+    region: 'NY',
   },
 });
 if (!REQUEST.ok) {
@@ -23,36 +24,17 @@ if (!REQUEST.ok) {
 const request = REQUEST.value;
 
 describe('createRequestHandler', () => {
-  it('answers get-report with the address and building', async () => {
-    const geocode = vi
-      .fn()
-      .mockResolvedValue(
-        ok({ bbl: '4001230001', bin: '4123456', borough: 'QUEENS' }),
-      );
+  it('answers get-report with the built report', async () => {
+    const buildReport = vi.fn().mockResolvedValue(err('building-not-found'));
 
-    await expect(createRequestHandler({ geocode })(request)).resolves.toEqual(
-      ok({
-        address: request.address,
-        building: { bbl: '4001230001', bin: '4123456' },
-      }),
-    );
-    expect(geocode).toHaveBeenCalledWith(request.address);
-  });
-
-  it.each([
-    ['not-found', 'building-not-found'],
-    ['ambiguous', 'building-not-found'],
-    ['unavailable', 'unavailable'],
-  ] as const)('maps geocode %s to %s', async (geocodeError, reportError) => {
-    const geocode = vi.fn().mockResolvedValue(err(geocodeError));
-
-    await expect(createRequestHandler({ geocode })(request)).resolves.toEqual(
-      err(reportError),
-    );
+    await expect(
+      createRequestHandler({ buildReport })(request),
+    ).resolves.toEqual(err('building-not-found'));
+    expect(buildReport).toHaveBeenCalledWith(request.address);
   });
 
   it('rejects a request type with no handler', async () => {
-    const handle = createRequestHandler({ geocode: vi.fn() });
+    const handle = createRequestHandler({ buildReport: vi.fn() });
 
     await expect(
       handle({ type: 'unknown' } as unknown as Request),

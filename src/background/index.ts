@@ -8,13 +8,27 @@
 import { EXTENSION_SHORT_NAME } from '../shared/constants';
 import { parseRequest } from '../shared/messages';
 import { err } from '../shared/result';
+import { fetchBedbugs } from './datasets/bedbugs';
+import { fetchComplaints } from './datasets/complaints-311';
+import { fetchConstruction } from './datasets/construction';
+import { fetchViolations } from './datasets/hpd-violations';
+import { fetchLotInfo } from './datasets/pluto';
 import { geocode } from './geocode';
 import { createRequestHandler } from './handle-request';
+import { buildReport } from './report';
 
 // Listeners are registered at the top level so they exist as soon as the worker
 // starts, before Chrome delivers the event that woke it.
 const handleRequest = createRequestHandler({
-  geocode: (address) => geocode(address),
+  buildReport: (address) =>
+    buildReport(address, {
+      geocode: (a) => geocode(a),
+      violations: (bbl) => fetchViolations(bbl),
+      complaints: (bbl) => fetchComplaints(bbl),
+      construction: (bin) => fetchConstruction(bin),
+      bedbugs: (bbl) => fetchBedbugs(bbl),
+      lot: (bbl) => fetchLotInfo(bbl),
+    }),
 });
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {
