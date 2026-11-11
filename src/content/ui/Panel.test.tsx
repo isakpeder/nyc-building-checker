@@ -12,13 +12,13 @@ import {
   within,
 } from '@testing-library/react';
 import { act } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type { ListingAddress } from '../../shared/address/listing-address';
 import type { StreetAddress } from '../../shared/address/street';
 import type { BuildingReport } from '../../shared/messages';
 import { err, ok } from '../../shared/result';
-import { DETAIL_LIMIT, shorten } from './Details';
+import { DETAIL_LIMIT, splitCitation } from './Details';
 import { Panel, SLOW_LOADING_MS } from './Panel';
 import { attachPanel } from './panel-root';
 
@@ -181,47 +181,76 @@ describe('Panel', () => {
 });
 
 describe('Details', () => {
-  it('starts collapsed and toggles with the button', () => {
+  // jsdom has no modal dialogs, so open and close only toggle the attribute.
+  beforeAll(() => {
+    HTMLDialogElement.prototype.showModal = function showModal(
+      this: HTMLDialogElement,
+    ) {
+      this.open = true;
+    };
+    HTMLDialogElement.prototype.close = function close(
+      this: HTMLDialogElement,
+    ) {
+      this.open = false;
+    };
+  });
+
+  it('opens the records in a dialog and closes it', () => {
     render(
       <Panel
         view={{ status: 'done', address: ADDRESS, response: ok(report(1, 1)) }}
       />,
     );
-    const button = screen.getByRole('button', { name: 'Show details' });
 
-    expect(button.getAttribute('aria-expanded')).toBe('false');
+    const dialog = screen.getByRole('dialog', { hidden: true });
+    expect((dialog as HTMLDialogElement).open).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+
+    expect((dialog as HTMLDialogElement).open).toBe(true);
     expect(
-      screen.queryByRole('heading', { name: 'Open violations' }),
-    ).toBeNull();
-
-    fireEvent.click(button);
-
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-    expect(
-      screen.getByRole('heading', { name: 'Open violations' }),
+      within(dialog).getByRole('heading', { name: 'Building records' }),
     ).toBeDefined();
-    expect(screen.getByText(/REPAIR ITEM 0/)).toBeDefined();
+    expect(within(dialog).getByText('REPAIR ITEM 0')).toBeDefined();
     expect(
-      screen.getByText(/HEAT\/HOT WATER \/ ENTIRE BUILDING \(2 reports\)/),
+      within(dialog).getByText(
+        /HEAT\/HOT WATER \/ ENTIRE BUILDING \(2 reports\)/,
+      ),
     ).toBeDefined();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Hide details' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
 
-    expect(
-      screen.queryByRole('heading', { name: 'Open violations' }),
-    ).toBeNull();
+    expect((dialog as HTMLDialogElement).open).toBe(false);
+  });
+
+  it('closes when the backdrop is clicked', () => {
+    render(
+      <Panel
+        view={{ status: 'done', address: ADDRESS, response: ok(report(1)) }}
+      />,
+    );
+    const dialog = screen.getByRole<HTMLDialogElement>('dialog', {
+      hidden: true,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+
+    fireEvent.click(dialog);
+
+    expect(dialog.open).toBe(false);
   });
 
   it('caps each list and says how many there are', () => {
     render(
       <Panel
-        view={{ status: 'done', address: ADDRESS, response: ok(report(25)) }}
+        view={{ status: 'done', address: ADDRESS, response: ok(report(60)) }}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Show details' }));
+    const dialog = screen.getByRole('dialog', { hidden: true });
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(DETAIL_LIMIT);
-    expect(screen.getByText(/showing 10 of 25/)).toBeDefined();
+    expect(
+      within(dialog).getAllByRole('listitem', { hidden: true }),
+    ).toHaveLength(DETAIL_LIMIT);
+    expect(within(dialog).getByText(/newest 50 of 60/)).toBeDefined();
   });
 
   it('is left out when there are no records to list', () => {
@@ -233,10 +262,25 @@ describe('Details', () => {
 
     expect(screen.queryByRole('button')).toBeNull();
   });
+});
 
-  it('shortens long descriptions at a word boundary', () => {
-    expect(shorten('short')).toBe('short');
-    expect(shorten('alpha beta gamma delta', 12)).toBe('alpha beta…');
+describe('splitCitation', () => {
+  it.each([
+    [
+      '§ 27-2005, 27-2007 HMC, §238 MDL AND 28 RCNY §25-171: REPLACE THE SELF-CLOSING DOORS',
+      {
+        text: 'REPLACE THE SELF-CLOSING DOORS',
+        citation: '§ 27-2005, 27-2007 HMC, §238 MDL AND 28 RCNY §25-171',
+      },
+    ],
+    [
+      '§ 27-2031 ADM CODE PROVIDE HOT WATER',
+      { text: '§ 27-2031 ADM CODE PROVIDE HOT WATER', citation: null },
+    ],
+    ['NOTE: CALL THE OWNER', { text: 'NOTE: CALL THE OWNER', citation: null }],
+    ['REPAIR THE STEPS', { text: 'REPAIR THE STEPS', citation: null }],
+  ])('splits %j', (description, expected) => {
+    expect(splitCitation(description)).toEqual(expected);
   });
 });
 
