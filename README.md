@@ -1,4 +1,4 @@
-# Stoop: NYC Building Checker
+# Stoop: Building History for NYC Renters
 
 [![CI](https://github.com/isakpeder/nyc-building-checker/actions/workflows/ci.yml/badge.svg)](https://github.com/isakpeder/nyc-building-checker/actions/workflows/ci.yml)
 

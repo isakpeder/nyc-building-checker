@@ -6,7 +6,7 @@
  */
 
 /** Full display name, used for the manifest name and store listing. */
-export const EXTENSION_NAME = 'Stoop: NYC Building Checker';
+export const EXTENSION_NAME = 'Stoop: Building History for NYC Renters';
 
 /** Short name, used for the manifest short_name and UI branding. */
 export const EXTENSION_SHORT_NAME = 'Stoop';
