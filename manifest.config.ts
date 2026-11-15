@@ -18,6 +18,12 @@ export default defineManifest({
   // AbortSignal.any, used for request timeouts, arrived in Chrome 116.
   minimum_chrome_version: '116',
   permissions: ['storage'],
+  icons: {
+    16: 'icons/icon-16.png',
+    32: 'icons/icon-32.png',
+    48: 'icons/icon-48.png',
+    128: 'icons/icon-128.png',
+  },
   background: {
     service_worker: 'src/background/index.ts',
     type: 'module',
@@ -30,6 +36,10 @@ export default defineManifest({
   ],
   action: {
     default_title: EXTENSION_SHORT_NAME,
+    default_icon: {
+      16: 'icons/icon-16.png',
+      32: 'icons/icon-32.png',
+    },
     default_popup: 'src/popup/index.html',
   },
 });
